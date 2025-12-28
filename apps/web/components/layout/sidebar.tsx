@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/branding/logo';
+import { useUser } from '@/hooks/use-user';
 import { api } from '@/lib/api';
 import {
     LayoutDashboard,
@@ -24,11 +24,7 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname();
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        setUser(api.getUser());
-    }, []);
+    const user = useUser();
 
     const menuItems = [
         { label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" />, href: '/dashboard' },

@@ -9,27 +9,24 @@ import { RecentActivity } from '@/components/features/dashboard/recent-activity'
 import { Button } from '@/components/ui/button';
 import { Download, Plus, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { useUser } from '@/hooks/use-user';
 
 export default function DashboardPage() {
     const router = useRouter();
+    const user = useUser();
     const [stats, setStats] = useState<{
         totalLeads: number;
         activeAppointments: number;
         totalRevenue: number;
         currency: string;
     } | undefined>(undefined);
-    const [user, setUser] = useState<{ firstName: string } | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [analyticsData, userData] = await Promise.all([
-                    api.getAnalyticsSummary(),
-                    api.getUser()
-                ]);
+                const analyticsData = await api.getAnalyticsSummary();
                 setStats(analyticsData);
-                setUser(userData);
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {

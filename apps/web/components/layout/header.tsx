@@ -1,29 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useUser } from '@/hooks/use-user';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CommandPalette } from '@/components/features/search/command-palette';
-import { api } from '@/lib/api';
-
-interface UserProfile {
-    firstName: string;
-    lastName: string;
-    email: string;
-}
 
 export function Header() {
-    const [user, setUser] = useState<UserProfile | null>(null);
-
-    useEffect(() => {
-        // We use a small delay or a promise to avoid the "synchronous setState in effect" lint
-        // This also ensures we only access localStorage on the client.
-        const currentUser = api.getUser();
-        if (currentUser) {
-            setUser(currentUser);
-        }
-    }, []);
+    const user = useUser();
 
     const fullName = user ? `${user.firstName} ${user.lastName}` : 'Pumpkin User';
     const initials = user ? `${user.firstName?.charAt(0)}${user.lastName?.charAt(0)}` : 'PU';

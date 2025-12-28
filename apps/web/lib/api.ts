@@ -5,7 +5,7 @@ interface AuthTokens {
     refreshToken: string;
 }
 
-interface User {
+export interface User {
     id: string;
     email: string;
     firstName: string;
@@ -109,9 +109,10 @@ class ApiClient {
         return response;
     }
 
-    private setUser(user: User) {
+    setUser(user: User) {
         if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(user));
+            window.dispatchEvent(new CustomEvent('user-updated'));
         }
     }
 
@@ -127,6 +128,7 @@ class ApiClient {
         this.clearTokens();
         if (typeof window !== 'undefined') {
             localStorage.removeItem('user');
+            window.dispatchEvent(new CustomEvent('user-updated'));
         }
     }
 
