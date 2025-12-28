@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,14 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    // Check if user is already logged in and redirect to dashboard
+    useEffect(() => {
+        const existingUser = api.getUser()
+        if (existingUser) {
+            router.push("/dashboard")
+        }
+    }, [router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
