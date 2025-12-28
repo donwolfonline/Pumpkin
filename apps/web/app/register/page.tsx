@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,6 +13,9 @@ import { api } from "@/lib/api"
 
 export default function RegisterPage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const selectedPlan = searchParams.get('plan')
+
     const [firstName, setFirstName] = useState("")
     const [lastName, setLastName] = useState("")
     const [email, setEmail] = useState("")
@@ -34,7 +37,13 @@ export default function RegisterPage() {
                 lastName,
                 organizationName
             })
-            router.push("/dashboard")
+
+            // If a paid plan was selected, redirect to checkout
+            if (selectedPlan && selectedPlan !== 'seedling') {
+                router.push(`/checkout?plan=${selectedPlan}`)
+            } else {
+                router.push("/dashboard")
+            }
         } catch (err) {
             const error = err as Error
             setError(error.message || "Registration failed. Please try again.")

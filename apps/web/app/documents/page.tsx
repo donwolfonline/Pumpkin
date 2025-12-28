@@ -54,32 +54,104 @@ export default function DocumentsPage() {
 
     // Load data on mount
     useEffect(() => {
-        // Load Documents
-        const savedDocs = localStorage.getItem('pumpkin_documents');
-        if (savedDocs) {
+        const saved = localStorage.getItem('pumpkin_documents');
+        if (saved) {
             try {
-                const parsed: Document[] = JSON.parse(savedDocs);
-                if (parsed.length > 0) {
-                    // Migration: Ensure all docs have an ID and content
+                const parsed: Document[] = JSON.parse(saved);
+                // Migration check: if old docs had numeric IDs or missing fields
+                if (parsed.length > 0 && typeof parsed[0].id === 'number') {
+                    const migrated = parsed.map((doc: any) => ({
+                        ...doc,
+                        id: String(doc.id),
+                        status: doc.status || 'draft',
+                        content: doc.content || ''
+                    }));
+                    setDocuments(migrated);
+                } else {
+                    // Ensure all docs have an ID and content for existing string IDs
                     const migrated = parsed.map(doc => ({
                         ...doc,
                         id: doc.id || crypto.randomUUID(),
                         content: doc.content || ''
                     }));
                     setDocuments(migrated);
-                } else {
-                    seedDefaults();
                 }
-            } catch (error) {
-                console.error('Failed to load documents:', error);
-                seedDefaults();
+            } catch (e) {
+                console.error("Failed to parse documents", e);
+                // Fallback to seeding defaults if parsing fails
+                const defaults: Document[] = [
+                    {
+                        id: crypto.randomUUID(),
+                        title: 'Standard Service Agreement',
+                        type: 'Template',
+                        client: 'Internal',
+                        date: new Date().toLocaleDateString(),
+                        status: 'draft',
+                        content: `SERVICE AGREEMENT
+
+BETWEEN: {{client_name}}
+AND: {{company_name}}
+
+1. SERVICES
+Provider agrees to perform the services described in the attached SOW.
+
+2. COMPENSATION
+Client agrees to pay Provider as outlined in the attached Invoice.
+
+3. CONFIDENTIALITY
+Both parties agree to keep all proprietary information confidential.
+
+4. TERM
+This agreement shall commence on {{date}} and continue until completion.`
+                    },
+                    {
+                        id: crypto.randomUUID(),
+                        title: 'Project Proposal Structure',
+                        type: 'Template',
+                        client: 'Internal',
+                        date: new Date().toLocaleDateString(),
+                        status: 'draft',
+                        content: `PROJECT PROPOSAL
+Prepared for: {{client_name}}
+
+1. EXECUTIVE SUMMARY
+Brief overview of the project goals.
+
+2. PROJECT SCOPE
+Detailed description of deliverables.
+
+3. TIMELINE
+Phase 1: Discovery
+Phase 2: Design
+Phase 3: Development
+
+4. INVESTMENT
+Total Project Cost: $X,XXX`
+                    },
+                    {
+                        id: crypto.randomUUID(),
+                        title: 'Non-Disclosure Agreement (NDA)',
+                        type: 'Template',
+                        client: 'Internal',
+                        date: new Date().toLocaleDateString(),
+                        status: 'draft',
+                        content: `NON-DISCLOSURE AGREEMENT
+
+This Agreement is made between {{company_name}} and {{client_name}}.
+
+1. DEFINITION OF CONFIDENTIAL INFORMATION
+...
+
+2. OBLIGATIONS
+Receiving Party shall hold and maintain the Confidential Information in strictest confidence.`
+                    }
+                ];
+                setDocuments(defaults);
+                localStorage.setItem('pumpkin_documents', JSON.stringify(defaults));
             }
         } else {
-            seedDefaults();
-        }
-
-        function seedDefaults() {
-            setDocuments([
+            // Seed defaults if no documents found
+            const defaults: Document[] = [
                 {
                     id: crypto.randomUUID(),
                     title: 'Standard Service Agreement',
@@ -145,7 +217,9 @@ This Agreement is made between {{company_name}} and {{client_name}}.
 2. OBLIGATIONS
 Receiving Party shall hold and maintain the Confidential Information in strictest confidence.`
                 }
-            ]);
+            ];
+            setDocuments(defaults);
+            localStorage.setItem('pumpkin_documents', JSON.stringify(defaults));
         }
 
         // Load Contacts
@@ -304,7 +378,7 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
         doc.setTextColor(0);
 
         // Variable replacement for download (just in case they exist)
-        let finalContent = content
+        const finalContent = content
             .replace(/{{company_name}}/g, company.name || '[My Company]')
             .replace(/{{client_name}}/g, selectedClient || '[Client Name]')
             .replace(/{{date}}/g, new Date().toLocaleDateString());

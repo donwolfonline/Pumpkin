@@ -4,13 +4,15 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 
 ## Features
 
-- **CRM** - Manage contacts, leads, and deals
-- **Proposals & Contracts** - Create and send professional proposals
-- **Scheduling** - Calendar and appointment management
-- **Payments & Billing** - Invoicing and Stripe integration
+- **CRM** - Manage contacts, leads, and deals with a mobile-friendly interface
+- **Proposals & Contracts** - Create and send professional documents with dynamic templates
+- **Scheduling** - Integrated calendar and appointment management
+- **Payments & Billing** - Multi-tiered subscription plans (Seedling, Sprout, Big Pumpkin), invoicing, and PDF export
+- **Registration Flow** - Integrated signup and secure mock checkout for subscription management
 - **Communication** - Email templates and client messaging
 - **Automation** - Workflow automation engine
-- **Analytics** - Business insights and reporting
+- **Analytics** - Real-time business insights and reporting
+- **Mobile Optimized** - Fully responsive design with native-feeling mobile navigation
 
 ## Tech Stack
 

@@ -83,8 +83,10 @@ export function Pricing() {
                                 ))}
                             </ul>
 
-                            <Button className={`w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
-                                {plan.button}
+                            <Button asChild className={`w-full h-12 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20' : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'}`}>
+                                <a href={`/register?plan=${plan.name.toLowerCase().replace(' ', '-')}`}>
+                                    {plan.button}
+                                </a>
                             </Button>
                         </div>
                     ))}
