@@ -10,6 +10,9 @@ export interface Project {
     dueDate: string; // ISO Date
     progress: number; // 0-100
     budget: number;
+    description?: string;
+    createdAt?: string;
+    updatedAt?: string;
     tags?: string[];
     team?: Array<{ name: string; avatar: string }>;
 }

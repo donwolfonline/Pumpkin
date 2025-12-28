@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 
 import { PumpkinToastProvider } from "@/components/ui/pumpkin-toast";
 import { NavigationLoader } from "@/components/ui/magical-loader";
+import { NotificationProvider } from "@/components/providers/notification-provider";
 
 export default function RootLayout({
   children,
@@ -39,7 +40,9 @@ export default function RootLayout({
       >
         <NavigationLoader />
         <PumpkinToastProvider>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </PumpkinToastProvider>
       </body>
     </html>

@@ -460,33 +460,33 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
                 setIsDialogOpen(open);
                 if (!open) resetForm();
             }}>
-                <DialogContent className="sm:max-w-[600px] bg-[#0c2a27] border-white/5 text-white rounded-3xl backdrop-blur-2xl">
-                    <DialogHeader>
-                        <DialogTitle className="font-heading uppercase tracking-widest text-sm text-white">
+                <DialogContent className="w-[90vw] max-w-[420px] bg-[#0c2a27] border-white/5 text-white rounded-2xl backdrop-blur-2xl px-4 py-5 gap-0">
+                    <DialogHeader className="mb-4">
+                        <DialogTitle className="font-heading uppercase tracking-widest text-xs mb-1 text-white">
                             {editingId ? 'Edit Document' : 'Draft New Document'}
                         </DialogTitle>
-                        <DialogDescription className="text-zinc-500 text-xs">
+                        <DialogDescription className="text-zinc-500 text-[10px]">
                             {editingId ? 'Update document details and content.' : 'Create a new proposal, contract, or template.'}
                         </DialogDescription>
                     </DialogHeader>
-                    <form onSubmit={handleCreateDocument} className="space-y-6 py-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="title" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Title</Label>
+                    <form onSubmit={handleCreateDocument} className="space-y-4 py-2">
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1">
+                                <Label htmlFor="title" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Title</Label>
                                 <Input
                                     id="title"
                                     name="title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="Doc Title"
-                                    className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm"
+                                    className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs"
                                     required
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="type" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Type</Label>
+                            <div className="space-y-1">
+                                <Label htmlFor="type" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Type</Label>
                                 <Select value={selectedType} onValueChange={setSelectedType}>
-                                    <SelectTrigger className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm">
+                                    <SelectTrigger className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs">
                                         <SelectValue placeholder="Type" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-[#0c2a27] border-white/5 text-white">
@@ -499,10 +499,10 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="client" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Assign to Client</Label>
+                        <div className="space-y-1">
+                            <Label htmlFor="client" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Assign to Client</Label>
                             <Select value={selectedClient} onValueChange={setSelectedClient}>
-                                <SelectTrigger className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm">
+                                <SelectTrigger className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs">
                                     <SelectValue placeholder="Select a client..." />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#0c2a27] border-white/5 text-white max-h-[200px]">
@@ -519,25 +519,25 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
                             </Select>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="content" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Content</Label>
+                        <div className="space-y-1">
+                            <Label htmlFor="content" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Content</Label>
                             <Textarea
                                 id="content"
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 placeholder="Enter document content here..."
-                                className="bg-black/20 border-white/5 rounded-xl min-h-[150px] p-4 text-sm font-mono"
+                                className="bg-black/20 border-white/5 rounded-lg min-h-[120px] p-3 text-xs font-mono"
                             />
                         </div>
 
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex gap-2 pt-2">
                             {editingId && (
                                 <>
                                     <Button
                                         type="button"
                                         onClick={handleDelete}
                                         variant="destructive"
-                                        className="h-11 w-11 p-0 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500"
+                                        className="h-9 w-9 p-0 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -545,14 +545,14 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
                                         type="button"
                                         onClick={handleDownload}
                                         variant="outline"
-                                        className="h-11 w-11 p-0 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 hover:text-primary"
+                                        className="h-9 w-9 p-0 rounded-lg border-white/10 bg-white/5 hover:bg-white/10 hover:text-primary"
                                         title="Download .txt"
                                     >
                                         <Download className="h-4 w-4" />
                                     </Button>
                                 </>
                             )}
-                            <Button type="submit" className="flex-1 h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[10px]">
+                            <Button type="submit" className="flex-1 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px]">
                                 {editingId ? 'Save Changes' : 'Create Document'}
                             </Button>
                         </div>
@@ -574,20 +574,20 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
                             <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
                         </div>
                     ) : hasDocuments ? (
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                             {filteredDocuments.map((doc, i) => (
-                                <Card key={doc.id || i} onClick={() => openEditDialog(doc)} className="cursor-pointer bg-black/20 border-white/5 rounded-2xl hover:border-primary/20 hover:shadow-2xl transition-all group overflow-hidden">
-                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
-                                        <div className="p-3 bg-primary/10 rounded-xl text-primary">
-                                            {doc.type === 'Proposal' ? <PenTool className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                                <Card key={doc.id || i} onClick={() => openEditDialog(doc)} className="cursor-pointer bg-black/20 border-white/5 rounded-2xl hover:border-primary/20 hover:shadow-xl transition-all group overflow-hidden">
+                                    <CardHeader className="flex flex-row items-start justify-between space-y-0 p-4 pb-2">
+                                        <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                                            {doc.type === 'Proposal' ? <PenTool className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                                         </div>
-                                        <StatusBadge variant={statusVariantMap[doc.status] || 'secondary'}>{doc.status}</StatusBadge>
+                                        <StatusBadge variant={statusVariantMap[doc.status] || 'secondary'} className="text-[9px] px-2 h-5">{doc.status}</StatusBadge>
                                     </CardHeader>
-                                    <CardContent className="pt-0">
-                                        <h3 className="font-bold text-white uppercase tracking-widest text-sm leading-tight mb-2 group-hover:text-primary transition-colors">{doc.title}</h3>
-                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-4">for {doc.client}</p>
-                                        <div className="text-[9px] text-zinc-600 flex items-center gap-2 font-bold uppercase tracking-[0.2em] border-t border-white/5 pt-4">
-                                            <Files className="h-3 w-3" />
+                                    <CardContent className="p-4 pt-1">
+                                        <h3 className="font-bold text-white uppercase tracking-widest text-xs leading-tight mb-1 group-hover:text-primary transition-colors truncate">{doc.title}</h3>
+                                        <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest mb-3 truncate">for {doc.client}</p>
+                                        <div className="text-[8px] text-zinc-600 flex items-center gap-1.5 font-bold uppercase tracking-[0.15em] border-t border-white/5 pt-3">
+                                            <Files className="h-2.5 w-2.5" />
                                             Updated {doc.date}
                                         </div>
                                     </CardContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { DashboardShell } from '@/components/dashboard-shell';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { api } from '@/lib/api';
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { getUserData, setUserData } from '@/lib/storage-utils';
 
 interface CompanySettings {
     name: string;
@@ -50,14 +51,30 @@ interface SecuritySettings {
 export default function SettingsPage() {
     const { toast } = usePumpkinToast();
 
-    // --- State ---
-    const [company, setCompany] = useState<CompanySettings>({ name: '', address: '', email: '', website: '', logoUrl: '' });
-    const [profile, setProfile] = useState<ProfileSettings>({ firstName: '', lastName: '', email: '', bio: '' });
-    const [team, setTeam] = useState<TeamMember[]>([]);
+    // --- State with lazy initialization to avoid cascading renders ---
+    const [company, setCompany] = useState<CompanySettings>(() =>
+        getUserData<CompanySettings>('pumpkin_company_settings') || { name: '', address: '', email: '', website: '', logoUrl: '' }
+    );
+    const [profile, setProfile] = useState<ProfileSettings>(() => {
+        const loadedProfile = getUserData<ProfileSettings>('pumpkin_profile_settings');
+        if (loadedProfile) return loadedProfile;
+        const apiUser = api.getUser();
+        if (apiUser) return { firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '' };
+        return { firstName: '', lastName: '', email: '', bio: '' };
+    });
+    const [team, setTeam] = useState<TeamMember[]>(() =>
+        getUserData<TeamMember[]>('pumpkin_team_settings') || []
+    );
     const [newMemberEmail, setNewMemberEmail] = useState('');
-    const [plan, setPlan] = useState<'free' | 'plus' | 'pro'>('free');
-    const [notifications, setNotifications] = useState<NotificationSettings>({ emailAlerts: true, pushNotifications: true, marketingEmails: false });
-    const [security, setSecurity] = useState<SecuritySettings>({ twoFactorEnabled: false });
+    const [plan, setPlan] = useState<'free' | 'plus' | 'pro'>(() =>
+        getUserData<'free' | 'plus' | 'pro'>('pumpkin_billing_plan') || 'free'
+    );
+    const [notifications, setNotifications] = useState<NotificationSettings>(() =>
+        getUserData<NotificationSettings>('pumpkin_notifications_settings') || { emailAlerts: true, pushNotifications: true, marketingEmails: false }
+    );
+    const [security, setSecurity] = useState<SecuritySettings>(() =>
+        getUserData<SecuritySettings>('pumpkin_security_settings') || { twoFactorEnabled: false }
+    );
     const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
 
     // --- Modal State ---
@@ -67,29 +84,10 @@ export default function SettingsPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentDetails, setPaymentDetails] = useState({ number: '', expiry: '', cvc: '', name: '' });
 
-    // --- Load Data ---
-    useEffect(() => {
-        const load = (key: string, setter: (val: any) => void) => {
-            const data = localStorage.getItem(key);
-            if (data) try { setter(JSON.parse(data)); } catch (e) { console.error(`Error loading ${key}`, e); }
-        };
-        load('pumpkin_company_settings', setCompany);
-        load('pumpkin_profile_settings', setProfile);
-        load('pumpkin_team_settings', setTeam);
-        load('pumpkin_billing_plan', setPlan);
-        load('pumpkin_notifications_settings', setNotifications);
-        load('pumpkin_security_settings', setSecurity);
-
-        if (!localStorage.getItem('pumpkin_profile_settings')) {
-            const apiUser = api.getUser();
-            if (apiUser) setProfile({ firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '' });
-        }
-    }, []);
-
     // --- Handlers ---
-    const handleSaveCompany = () => { localStorage.setItem('pumpkin_company_settings', JSON.stringify(company)); toast('Company settings saved!', 'success'); };
-    const handleSaveProfile = () => { localStorage.setItem('pumpkin_profile_settings', JSON.stringify(profile)); toast('Profile updated!', 'success'); };
-    const handleSaveNotifications = () => { localStorage.setItem('pumpkin_notifications_settings', JSON.stringify(notifications)); toast('Preferences saved.', 'success'); };
+    const handleSaveCompany = () => { setUserData('pumpkin_company_settings', company); toast('Company settings saved!', 'success'); };
+    const handleSaveProfile = () => { setUserData('pumpkin_profile_settings', profile); toast('Profile updated!', 'success'); };
+    const handleSaveNotifications = () => { setUserData('pumpkin_notifications_settings', notifications); toast('Preferences saved.', 'success'); };
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -106,7 +104,7 @@ export default function SettingsPage() {
         const newMember: TeamMember = { id: crypto.randomUUID(), name: 'Pending User', email: newMemberEmail, role: 'Member' };
         const updated = [...team, newMember];
         setTeam(updated);
-        localStorage.setItem('pumpkin_team_settings', JSON.stringify(updated));
+        setUserData('pumpkin_team_settings', updated);
         setNewMemberEmail('');
         toast(`Invitation sent to ${newMemberEmail}`, 'success');
     };
@@ -114,12 +112,12 @@ export default function SettingsPage() {
     const handleRemoveTeamMember = (id: string) => {
         const updated = team.filter(m => m.id !== id);
         setTeam(updated);
-        localStorage.setItem('pumpkin_team_settings', JSON.stringify(updated));
+        setUserData('pumpkin_team_settings', updated);
         toast('Team member removed', 'info');
     };
 
     const handleSaveSecurity = () => {
-        localStorage.setItem('pumpkin_security_settings', JSON.stringify(security));
+        setUserData('pumpkin_security_settings', security);
         if (passwordData.new) {
             if (passwordData.new !== passwordData.confirm) return toast("Passwords don't match!", 'error');
             toast('Security updated & Password changed!', 'success');
@@ -150,7 +148,14 @@ export default function SettingsPage() {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         setPlan(selectedTier);
-        localStorage.setItem('pumpkin_billing_plan', JSON.stringify(selectedTier));
+        setUserData('pumpkin_billing_plan', selectedTier);
+
+        // Set subscription start date for paid plans
+        if (selectedTier === 'plus' || selectedTier === 'pro') {
+            const { setSubscriptionStartDate } = await import('@/lib/subscription-utils');
+            setSubscriptionStartDate();
+        }
+
         setIsProcessing(false);
         setIsUpgradeOpen(false);
 

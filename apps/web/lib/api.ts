@@ -96,6 +96,11 @@ class ApiClient {
         });
         this.setTokens(response);
         this.setUser(response.user);
+
+        // Initialize registration date for trial tracking
+        const { initializeRegistrationDate } = await import('./subscription-utils');
+        initializeRegistrationDate();
+
         return response;
     }
 
@@ -137,30 +142,30 @@ class ApiClient {
         // Return mock data for now to prevent 401 errors from backend
         // In a real app, this would calculate from local data or fetch from API
 
+        const { getUserData } = await import('./storage-utils');
+
         // Calculate revenue from local invoices if available
-        let totalRevenue = 12500; // default mock
+        let totalRevenue = 0; // Start with 0 for new users
         let totalLeads = 0;
         let activeAppointments = 0;
 
         if (typeof window !== 'undefined') {
-            // Invoices
-            const savedInvoices = localStorage.getItem('pumpkin_invoices');
-            if (savedInvoices) {
+            // Invoices - using user-scoped key
+            const invoices = getUserData<any[]>('pumpkin_invoices');
+            if (invoices && invoices.length > 0) {
                 try {
-                    const invoices = JSON.parse(savedInvoices);
                     const paidInvoices = invoices.filter((inv: any) => inv.status === 'paid');
                     const revenue = paidInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
-                    if (revenue > 0) totalRevenue = revenue;
+                    totalRevenue = revenue;
                 } catch (e) {
                     console.error('Failed to calculate revenue from local storage');
                 }
             }
 
-            // Leads (Contacts)
-            const savedContacts = localStorage.getItem('pumpkin_contacts');
-            if (savedContacts) {
+            // Leads (Contacts) - using user-scoped key
+            const contacts = getUserData<any[]>('pumpkin_contacts');
+            if (contacts) {
                 try {
-                    const contacts = JSON.parse(savedContacts);
                     // Assume all contacts are leads/inquiries for now, or filter by specific type if you had one
                     totalLeads = contacts.length;
                 } catch (e) {
@@ -168,11 +173,10 @@ class ApiClient {
                 }
             }
 
-            // Appointments (Scheduling)
-            const savedAppointments = localStorage.getItem('pumpkin_appointments');
-            if (savedAppointments) {
+            // Appointments (Scheduling) - using user-scoped key
+            const appointments = getUserData<any[]>('pumpkin_appointments');
+            if (appointments) {
                 try {
-                    const appointments = JSON.parse(savedAppointments);
                     // Count future appointments
                     const now = new Date();
                     activeAppointments = appointments.filter((apt: any) => new Date(apt.date) >= now).length;

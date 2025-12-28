@@ -13,6 +13,9 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 - **Automation** - Workflow automation engine
 - **Analytics** - Real-time business insights and reporting
 - **Mobile Optimized** - Fully responsive design with native-feeling mobile navigation
+- **Appointment Management** - Schedule with clients, delete appointments, and get notified
+- **Smart Notifications** - Integrated header notifications with a creative popup system
+- **Document Vault** - Secure storage for business documents with PDF generation
 
 ## Tech Stack
 

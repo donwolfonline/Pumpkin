@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/branding/logo';
 import { useUser } from '@/hooks/use-user';
 import { api } from '@/lib/api';
+import { getSubscriptionStatus } from '@/lib/subscription-utils';
 import {
     LayoutDashboard,
     Users,
@@ -25,6 +26,7 @@ type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname();
     const user = useUser();
+    const subscriptionStatus = getSubscriptionStatus();
 
     const menuItems = [
         { label: 'Overview', icon: <LayoutDashboard className="h-4 w-4" />, href: '/dashboard' },
@@ -86,16 +88,30 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
 
                 {/* Upgrade Card for Free Users */}
-                <div className="px-4 mt-4 pb-4">
-                    <div className="rounded-2xl bg-gradient-to-br from-[#0a2c28] to-[#051c1c] border border-white/5 p-4 shadow-2xl">
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">Seedling Plan</p>
-                        <p className="text-xs text-white font-medium mb-4">Reached your client limit? Grow your patch!</p>
-                        <Button className="w-full h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2">
-                            <ArrowUpCircle className="h-3 w-3" />
-                            Upgrade Now
-                        </Button>
+                {subscriptionStatus.plan === 'free' && (
+                    <div className="px-4 mt-4 pb-4">
+                        <div className={`rounded-2xl bg-gradient-to-br from-[#0a2c28] to-[#051c1c] border p-4 shadow-2xl ${subscriptionStatus.daysRemaining <= 3 ? 'border-red-500/30' : 'border-white/5'
+                            }`}>
+                            <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1">
+                                {subscriptionStatus.status === 'expired' ? 'Trial Expired' : 'Seedling Plan'}
+                            </p>
+                            <p className={`text-xs font-medium mb-3 ${subscriptionStatus.daysRemaining <= 3 ? 'text-red-400' : 'text-white'
+                                }`}>
+                                {subscriptionStatus.status === 'expired'
+                                    ? 'Upgrade to continue!'
+                                    : `${subscriptionStatus.daysRemaining} ${subscriptionStatus.daysRemaining === 1 ? 'day' : 'days'} left in trial`
+                                }
+                            </p>
+                            <Button
+                                className="w-full h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2"
+                                onClick={() => window.location.href = '/settings'}
+                            >
+                                <ArrowUpCircle className="h-3 w-3" />
+                                Upgrade Now
+                            </Button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <div className="p-6 border-t border-white/5 bg-[#051c1c]">
