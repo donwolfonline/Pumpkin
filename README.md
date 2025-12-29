@@ -16,6 +16,7 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 - **Appointment Management** - Schedule with clients, delete appointments, and get notified
 - **Smart Notifications** - Integrated header notifications with a creative popup system
 - **Document Vault** - Secure storage for business documents with PDF generation
+- **Settings & Preferences** - Comprehensive control over company profile, team members, notifications, and security
 
 ## Tech Stack
 
