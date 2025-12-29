@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { Bell, X, Calendar, Clock, User } from "lucide-react";
-import { Appointment } from "@/components/providers/notification-provider";
+import { Bell, X, Clock, User } from "lucide-react";
+import { Appointment } from "@/lib/types/appointment";
 
 interface NotificationPopupProps {
     notification: {

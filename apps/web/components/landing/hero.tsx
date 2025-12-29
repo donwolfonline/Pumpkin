@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
 export function Hero() {
@@ -41,9 +42,11 @@ export function Hero() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
-                        <Button size="lg" className="h-16 px-10 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-105 transition-all">
-                            🎃 Start Free Now
-                        </Button>
+                        <Link href="/register">
+                            <Button size="lg" className="h-16 px-10 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-105 transition-all">
+                                🎃 Start Free Now
+                            </Button>
+                        </Link>
                         <Button size="lg" variant="ghost" className="h-16 px-10 text-xl font-bold rounded-full bg-[#0a2c28] text-white border border-white/10 hover:bg-[#0f403c]">
                             ▶ See How It Works
                         </Button>

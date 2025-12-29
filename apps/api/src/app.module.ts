@@ -11,6 +11,7 @@ import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { AutomationModule } from './modules/automation/automation.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { HealthModule } from './modules/health/health.module';
 import { DummyDataSeeder } from './common/seed/dummy-data.seeder';
 import { User } from './modules/auth/entities/user.entity';
 import { Organization } from './modules/tenant/entities/organization.entity';
@@ -69,6 +70,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     PaymentsModule,
     AutomationModule,
     AnalyticsModule,
+    HealthModule,
     TypeOrmModule.forFeature([
       User,
       Organization,
@@ -88,4 +90,4 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

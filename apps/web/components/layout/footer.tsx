@@ -43,7 +43,14 @@ export function Footer() {
 
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">© 2024 Pumpkin Party Inc. All rights reserved.</p>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-6">
+                        <Link href="/status" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                            </span>
+                            <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">All Systems Normal</span>
+                        </Link>
                         <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Powered by Pumpkin Power</span>
                     </div>
                 </div>
