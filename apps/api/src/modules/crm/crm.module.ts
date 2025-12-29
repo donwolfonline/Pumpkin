@@ -12,9 +12,13 @@ import { ContactsController } from './controllers/contacts.controller';
 import { LeadsController } from './controllers/leads.controller';
 import { ActivitiesController } from './controllers/activities.controller';
 import { CommunicationsController } from './controllers/communications.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Contact, Lead, Activity, Message])],
+  imports: [
+    TypeOrmModule.forFeature([Contact, Lead, Activity, Message]),
+    AuthModule,
+  ],
   controllers: [
     ContactsController,
     LeadsController,
@@ -34,4 +38,4 @@ import { CommunicationsController } from './controllers/communications.controlle
     CommunicationsService,
   ],
 })
-export class CrmModule {}
+export class CrmModule { }

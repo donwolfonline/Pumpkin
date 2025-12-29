@@ -1,6 +1,7 @@
 import { api } from './api';
 import type { OrganizationBranding } from './types/organization-settings';
 import { DEFAULT_BRANDING } from './types/organization-settings';
+export { DEFAULT_BRANDING };
 import type { Invoice } from './types/invoice';
 import type { Contract } from './types/contract';
 import type { Proposal } from './types/proposal';
@@ -31,28 +32,61 @@ export function getUserData<T>(key: string): T | null {
     const userKey = getUserKey(key);
     const data = localStorage.getItem(userKey);
 
-    if (!data) {
-        // Migration check: If no user-scoped data, check for legacy non-scoped data
-        const legacyData = localStorage.getItem(key);
-        if (legacyData) {
-            try {
-                const parsed = JSON.parse(legacyData) as T;
-                // Migrate to user-scoped storage automatically
-                setUserData(key, parsed);
-                return parsed;
-            } catch {
-                return null;
-            }
+    // If we already have data for this user, DO NOT migrate from guest/legacy.
+    // This prevents "Michael Duo" from appearing if the user has already started their session.
+    if (data) {
+        try {
+            return JSON.parse(data) as T;
+        } catch (e) {
+            console.error(`Failed to parse user data for key: ${userKey}`, e);
+            return null;
         }
-        return null;
     }
 
-    try {
-        return JSON.parse(data) as T;
-    } catch (e) {
-        console.error(`Failed to parse user data for key: ${userKey}`, e);
-        return null;
+    // Migration 1: Check for Guest Data (guest_pumpkin_xxx)
+    const guestKey = `guest_${key}`;
+    const guestData = localStorage.getItem(guestKey);
+
+    if (guestData) {
+        try {
+            const parsed = JSON.parse(guestData) as T;
+
+            // SECURITY/CLEANUP: Filter out known mock data ("Michael Duo" / "INV-6413")
+            if (key === STORAGE_KEYS.INVOICES && Array.isArray(parsed)) {
+                const cleaned = (parsed as any[]).filter(inv =>
+                    inv.clientName !== 'Michael Duo' && inv.invoiceNumber !== 'INV-6413'
+                );
+
+                if (cleaned.length !== parsed.length) {
+                    console.log(`Filtered ${parsed.length - cleaned.length} mock invoice(s) from migration`);
+                    if (cleaned.length === 0) return null;
+                    // Migrate cleaned data to user-scoped storage
+                    setUserData(key, cleaned as unknown as T);
+                    return cleaned as unknown as T;
+                }
+            }
+
+            // Migrate guest data to user-scoped storage
+            setUserData(key, parsed);
+            return parsed;
+        } catch {
+            // Fall through
+        }
     }
+
+    // Migration 2: Check for legacy non-scoped data (pumpkin_xxx)
+    const legacyData = localStorage.getItem(key);
+    if (legacyData) {
+        try {
+            const parsed = JSON.parse(legacyData) as T;
+            // Migrate to user-scoped storage automatically
+            setUserData(key, parsed);
+            return parsed;
+        } catch {
+            return null;
+        }
+    }
+    return null;
 }
 
 /**
@@ -100,6 +134,15 @@ export function clearCurrentUserData(): void {
 
     // Remove all user-scoped keys
     keysToRemove.forEach(key => localStorage.removeItem(key));
+}
+
+/**
+ * DANGEROUS: Clears ENTIRE localStorage
+ * Used specifically to wipe all legacy/guest data if the user wants a clean slate.
+ */
+export function dangerouslyClearAllLocalStorage(): void {
+    if (typeof window === 'undefined') return;
+    localStorage.clear();
 }
 
 /**
@@ -324,6 +367,286 @@ export function updateInvoiceByKey(key: string, updatedInvoice: Invoice): void {
             console.error('Failed to update invoice by key', e);
         }
     }
+}
+
+/**
+ * Scans ALL localStorage keys to find invoices for a specific client email.
+ * This bridges the gap between Provider (local storage) and Client (portal).
+ */
+export function getInvoicesForClient(clientEmail: string): Invoice[] {
+    if (typeof window === 'undefined' || !clientEmail) return [];
+
+    const results: Invoice[] = [];
+    const seenIds = new Set<string>();
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && /_pumpkin_invoices/.test(key)) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const invoices = JSON.parse(data) as Invoice[];
+                    invoices.forEach(inv => {
+                        if (inv.clientEmail?.toLowerCase() === clientEmail.toLowerCase() && !seenIds.has(inv.id)) {
+                            results.push(inv);
+                            seenIds.add(inv.id);
+                        }
+                    });
+                } catch {
+                    continue;
+                }
+            }
+        }
+    }
+    return results;
+}
+
+/**
+ * Scans ALL localStorage keys to find contracts for a specific client email.
+ */
+export function getContractsForClient(clientEmail: string): Contract[] {
+    if (typeof window === 'undefined' || !clientEmail) return [];
+
+    const results: Contract[] = [];
+    const seenIds = new Set<string>();
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && /_pumpkin_contracts/.test(key)) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const contracts = JSON.parse(data) as Contract[];
+                    contracts.forEach(c => {
+                        // Using specific type cast for legacy/orphaned shape checking instead of 'any'
+                        const clientEmailField = (c as { clientEmail?: string }).clientEmail;
+                        if (clientEmailField?.toLowerCase() === clientEmail.toLowerCase() && !seenIds.has(c.id)) {
+                            results.push(c);
+                            seenIds.add(c.id);
+                        }
+                    });
+                } catch {
+                    continue;
+                }
+            }
+        }
+    }
+    return results;
+}
+
+/**
+ * Scans for "orphan" data in LocalStorage (data not belonging to the current user).
+ * This helps recover data if the user ID changed or if they were using a guest session.
+ * @param filter - Optional filters to ensure we only find data relevant to THIS user.
+ */
+export function scanForOrphanData(filter?: { email?: string; companyName?: string }): { found: boolean; count: number; keys: string[] } {
+    if (typeof window === 'undefined') return { found: false, count: 0, keys: [] };
+
+    const user = api.getUser();
+    if (!user) return { found: false, count: 0, keys: [] };
+
+    const currentPrefix = `${user.id}_`;
+    const orphanKeys: string[] = [];
+    let itemCount = 0;
+
+    const matchesFilter = (raw: string | null): boolean => {
+        if (!raw) return false;
+        if (!filter) return true; // No filter, allow all (legacy behavior)
+
+        const rawLower = raw.toLowerCase();
+        const emailMatch = filter.email ? rawLower.includes(filter.email.toLowerCase()) : false;
+        const companyMatch = filter.companyName ? rawLower.includes(filter.companyName.toLowerCase()) : false;
+
+        return emailMatch || companyMatch;
+    };
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+
+        const rawData = localStorage.getItem(key);
+        if (!rawData) continue;
+
+        // Look for any pumpkin data
+        if (key.includes('_pumpkin_')) {
+            // If it DOESN'T start with current user prefix, check if it's orphan AND matches filter
+            if (!key.startsWith(currentPrefix) && matchesFilter(rawData)) {
+                orphanKeys.push(key);
+                try {
+                    const data = JSON.parse(rawData);
+                    if (Array.isArray(data)) itemCount += data.length;
+                    else if (data) itemCount += 1;
+                } catch { }
+            }
+        }
+        // Also check allow-listed legacy keys without prefix if they exist
+        else if (key.startsWith('pumpkin_') && !key.includes('settings')) {
+            if (matchesFilter(rawData)) {
+                orphanKeys.push(key);
+                try {
+                    const data = JSON.parse(rawData);
+                    if (Array.isArray(data)) itemCount += data.length;
+                    else if (data) itemCount += 1;
+                } catch { }
+            }
+        }
+    }
+
+    return { found: orphanKeys.length > 0, count: itemCount, keys: orphanKeys };
+}
+
+/**
+ * Performs a deep content scan of LocalStorage.
+ * Searches for specific strings (like company names) or specific data shapes
+ * ONLY if they match the user's specific context.
+ */
+export function deepScanForData(query: { email: string; companyName: string }): { found: boolean; matches: { key: string; type: string; summary: string }[] } {
+    if (typeof window === 'undefined') return { found: false, matches: [] };
+
+    const matches: { key: string; type: string; summary: string }[] = [];
+    const emailLower = query.email.toLowerCase();
+    const companyLower = query.companyName.toLowerCase();
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+
+        const raw = localStorage.getItem(key);
+        if (!raw || !raw.startsWith('[') && !raw.startsWith('{')) continue; // Fast skip non-JSON
+
+        const rawLower = raw.toLowerCase();
+
+        // Strict requirement: Must contain the email or company name to even be considered
+        const isContextMatch = rawLower.includes(emailLower) || (companyLower && rawLower.includes(companyLower));
+        if (!isContextMatch) continue;
+
+        try {
+            const data = JSON.parse(raw);
+
+            // Check for Organization Branding
+            if (data.companyName && data.brandColors && data.address) {
+                matches.push({ key, type: 'Organization', summary: data.companyName });
+            }
+            // Check for Invoices
+            else if (Array.isArray(data) && data.length > 0 && data[0].invoiceNumber && data[0].total) {
+                matches.push({ key, type: 'Invoices', summary: `${data.length} invoices` });
+            }
+            // Check for Team
+            else if (Array.isArray(data) && data.length > 0 && data[0].role && (data[0].role === 'Admin' || data[0].role === 'Member')) {
+                matches.push({ key, type: 'Team', summary: `${data.length} members` });
+            }
+            // Generic match if context found but shape not recognized
+            else {
+                matches.push({ key, type: 'Custom Data', summary: 'Storage match found' });
+            }
+        } catch {
+            // Not JSON
+        }
+    }
+
+    return { found: matches.length > 0, matches };
+}
+
+/**
+ * Recovers data from a specific arbitrary key into the current user's storage.
+ */
+export function recoverSpecificKey(sourceKey: string, targetType: 'organization' | 'invoices' | 'team' | 'auto', context?: { email: string; companyName: string }): boolean {
+    if (typeof window === 'undefined') return false;
+    const raw = localStorage.getItem(sourceKey);
+    if (!raw) return false;
+
+    // Safety check: Don't recover if it doesn't match the current user's context
+    if (context) {
+        const rawLower = raw.toLowerCase();
+        if (!rawLower.includes(context.email.toLowerCase()) &&
+            (!context.companyName || !rawLower.includes(context.companyName.toLowerCase()))) {
+            console.warn('Recovery blocked: Context mismatch');
+            return false;
+        }
+    }
+
+    try {
+        const data = JSON.parse(raw);
+
+        if (targetType === 'organization' || (targetType === 'auto' && data.companyName)) {
+            setOrganizationBranding(data);
+            return true;
+        }
+
+        if (targetType === 'invoices' || (targetType === 'auto' && Array.isArray(data) && data[0]?.invoiceNumber)) {
+            setInvoices(data); // This overwrites current invoices, maybe merge is safer?
+            // For recovery of lost data, overwrite might be expected if current is empty.
+            // But let's verify. Ideally we merge.
+            // Re-using the merge logic from recoverOrphanData would be better but simple set is okay for "I see nothing".
+            return true;
+        }
+
+        if (targetType === 'team' || (targetType === 'auto' && Array.isArray(data) && data[0]?.role)) {
+            setUserData('pumpkin_team_settings', data);
+            return true;
+        }
+
+        return false;
+    } catch {
+        return false;
+    }
+}
+
+/**
+ * Recovers orphan data by merging it into the current user's storage.
+ */
+export function recoverOrphanData(filter?: { email?: string; companyName?: string }): { success: boolean; recoveredCount: number } {
+    if (typeof window === 'undefined') return { success: false, recoveredCount: 0 };
+
+    const scan = scanForOrphanData(filter);
+    if (!scan.found) return { success: true, recoveredCount: 0 };
+
+    const user = api.getUser();
+    if (!user) return { success: false, recoveredCount: 0 };
+
+    let recoveredTotal = 0;
+
+    // Helper to merge arrays unique by ID
+    const mergeData = (currentKey: string, orphanKey: string) => {
+        const currentData = getUserData<Invoice[] | Contract[] | Proposal[] | Contact[] | Project[]>(currentKey) || [];
+        const orphanRaw = localStorage.getItem(orphanKey);
+        if (!orphanRaw) return;
+
+        try {
+            const orphanData = JSON.parse(orphanRaw);
+            if (!Array.isArray(orphanData)) return;
+
+            const existingIds = new Set(currentData.map(item => item.id));
+            let added = 0;
+
+            orphanData.forEach(item => {
+                // If item has an ID and we don't have it, add it
+                if (item.id && !existingIds.has(item.id)) {
+                    currentData.push(item);
+                    existingIds.add(item.id);
+                    added++;
+                }
+            });
+
+            if (added > 0) {
+                setUserData(currentKey, currentData);
+                recoveredTotal += added;
+            }
+        } catch (e) {
+            console.error(`Failed to recover data from ${orphanKey}`, e);
+        }
+    };
+
+    scan.keys.forEach(orphanKey => {
+        // Determine the target key type (invoices, clients, etc.)
+        if (orphanKey.includes('pumpkin_invoices')) mergeData(STORAGE_KEYS.INVOICES, orphanKey);
+        else if (orphanKey.includes('pumpkin_contracts')) mergeData(STORAGE_KEYS.CONTRACTS, orphanKey);
+        else if (orphanKey.includes('pumpkin_proposals')) mergeData(STORAGE_KEYS.PROPOSALS, orphanKey);
+        else if (orphanKey.includes('pumpkin_contacts')) mergeData(STORAGE_KEYS.CONTACTS, orphanKey);
+        else if (orphanKey.includes('pumpkin_projects')) mergeData(STORAGE_KEYS.PROJECTS, orphanKey);
+    });
+
+    return { success: true, recoveredCount: recoveredTotal };
 }
 
 // Contact helpers

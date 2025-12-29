@@ -54,55 +54,72 @@ pumpkin/
 
 ## Getting Started
 
+Follow these steps to set up the project locally for development.
+
 ### Prerequisites
 
-- Node.js 18+
-- Docker & Docker Compose
-- npm 9+
+- **Node.js**: v18 or later
+- **npm**: v9 or later
+- **Docker**: For running the database (PostgreSQL) and other services
+- **Git**: To clone the repository
 
 ### Installation
 
 1. **Clone the repository**
 
-    ```bash
-    git clone <repository-url>
-    cd pumpkin
-    ```
+   ```bash
+   git clone <repository-url>
+   cd pumpkin
+   ```
 
 2. **Install dependencies**
+   Install all dependencies for the entire workspace from the root directory:
 
-    ```bash
-    npm install
-    ```
+   ```bash
+   npm install
+   ```
 
-3. **Environment Setup**
-    - Copy `.env.example` to `.env` in `apps/web` and `apps/api`.
-    - Update the variables with your configuration.
+3. **Environment Configuration**
+   The project uses environment variables for configuration. You need to set these up in both the `web` and `api` apps.
 
-4. **Start Database**
+   - **Backend (apps/api)**:
 
-    ```bash
-    docker-compose -f infrastructure/docker/docker-compose.yml up -d
-    ```
+     ```bash
+     cp apps/api/.env.example apps/api/.env
+     ```
 
-5. **Run Migrations (Backend)**
+   - **Frontend (apps/web)**:
 
-    ```bash
-    cd apps/api
-    npm run migration:run
-    ```
+     ```bash
+     cp apps/web/.env.example apps/web/.env
+     ```
+
+4. **Start Infrastructure (Database)**
+   Run the following command to start the PostgreSQL database container:
+
+   ```bash
+   docker-compose -f infrastructure/docker/docker-compose.yml up -d
+   ```
+
+5. **Initialize Database**
+   Run migrations to set up the database schema:
+
+   ```bash
+   cd apps/api
+   npm run migration:run
+   cd ../..
+   ```
 
 6. **Start Development Servers**
+   From the root directory, start all applications in development mode:
 
-    ```bash
-    # From root directory
-    npm run dev
-    ```
+   ```bash
+   npm run dev
+   ```
 
-Visit:
-
-- Frontend: <http://localhost:3000>
-- Backend API: <http://localhost:4000>
+   - **Frontend**: [http://localhost:3000](http://localhost:3000)
+   - **API**: [http://localhost:4000](http://localhost:4000)
+   - **API Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
 
 ## Features & Usage
 
@@ -122,30 +139,70 @@ Visit:
 - **Dashboard**: Real-time overview of business performance.
 - **Client Management**: Track leads and client interactions.
 
-## Troubleshooting
+## Development Workflow
 
-### Common Issues
+### Project Structure
 
-- **Port Conflicts**: Ensure ports `3000` (Web) and `4000` (API) are free.
-- **Database Connection**: Check if Docker container is running (`docker ps`).
-- **Missing Signatures in PDF**: Ensure you have signed the proposal as *both* provider and client to see both signatures.
-- **"Proposal Not Found"**: Verify the ID in the URL allows public access and isn't expired.
+This is a monorepo managed with **Turborepo** and **npm workspaces**.
 
-## Development
+- `apps/web`: Next.js 16 (Turbopack) frontend
+- `apps/api`: NestJS backend
+- `packages/types`: Shared TypeScript definitions
+- `packages/ui`: Shared UI components (using shadcn/ui)
+
+### Common Commands
+
+Run these commands from the **root directory**:
 
 ```bash
-# Run all apps in development mode
+# Start all apps in watch mode
 npm run dev
 
-# Build all apps
+# Build all packages and applications
 npm run build
 
-# Run tests
-npm run test
-
-# Lint code
+# Run linting for all workspaces
 npm run lint
+
+# Format code with Prettier
+npm run format
+
+# Run tests across all workspaces
+npm run test
 ```
+
+### Working with Workspaces
+
+To run a command for a specific workspace:
+
+```bash
+# Run dev only for the web app
+npm run dev --workspace=web
+
+# Add a package to the api app
+npm install <package-name> --workspace=api
+```
+
+### Database Management
+
+The backend uses **TypeORM**. Common database commands (run in `apps/api`):
+
+```bash
+# Generate a new migration
+npm run migration:generate -- src/migrations/MigrationName
+
+# Apply migrations
+npm run migration:run
+
+# Revert the last migration
+npm run migration:revert
+```
+
+## Troubleshooting
+
+- **Port 4000 already in use**: This is a common issue if a previous backend process didn't terminate correctly. Find the process and kill it: `lsof -i :4000` then `kill -9 <PID>`.
+- **Database Connection Refused**: Ensure Docker is running and the database container is healthy: `docker ps`.
+- **Turbo Lock Issues**: If you see `Unable to acquire lock`, ensure no other instances of the dev server are running. You may need to manually delete `apps/web/.next/dev/lock`.
 
 ## License
 

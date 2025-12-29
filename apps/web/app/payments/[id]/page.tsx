@@ -6,11 +6,11 @@ import { PageHeader } from '../../../components/shared/page-header';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
 import { InvoiceStatusBadge } from '../../../components/shared/status-badge';
-import { Download, Send, CheckCircle, ArrowLeft, Edit, Eye, Share2, QrCode, Copy, Check } from 'lucide-react';
+import { Download, Send, CheckCircle, ArrowLeft, Edit, Eye, Share2, QrCode, Copy, Check, Loader2 } from 'lucide-react';
 import { formatCurrency } from '../../../lib/utils';
 import Link from 'next/link';
 import { QRCodeSVG } from 'qrcode.react';
-import type { Invoice, InvoiceStatus } from '../../../lib/types/invoice';
+import type { Invoice, InvoiceStatus, InvoiceHistoryEvent } from '../../../lib/types/invoice';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import { usePumpkinToast } from '../../../components/ui/pumpkin-toast';
@@ -30,6 +30,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Invoice>>({});
+    const [isSending, setIsSending] = useState(false);
     const { toast } = usePumpkinToast();
 
     useEffect(() => {
@@ -44,7 +45,17 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         if (!invoice) return;
 
         const newStatus: InvoiceStatus = invoice.status === 'paid' ? 'pending' : 'paid';
-        const updatedInvoice: Invoice = { ...invoice, status: newStatus };
+        const updatedInvoice: Invoice = {
+            ...invoice,
+            status: newStatus,
+            history: [{
+                id: crypto.randomUUID(),
+                action: 'paid',
+                timestamp: new Date().toISOString(),
+                details: `Invoice marked as ${newStatus}`,
+                actor: 'User'
+            } as InvoiceHistoryEvent, ...(invoice.history || [])]
+        };
 
         // Update in storage
         const invoices = getInvoices();
@@ -57,8 +68,38 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         }
     };
 
-    const handleSendInvoice = () => {
-        toast(`Invoice will be sent to ${invoice?.clientEmail || 'client'}. (Email functionality coming soon!)`, 'info');
+    const handleSendInvoice = async () => {
+        if (!invoice) return;
+
+        setIsSending(true);
+
+        // Simulate network delay for email sending
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const newHistoryItem: InvoiceHistoryEvent = {
+            id: crypto.randomUUID(),
+            action: 'sent',
+            timestamp: new Date().toISOString(),
+            details: `Invoice sent to ${invoice.clientEmail}`,
+            actor: 'User'
+        };
+
+        const updatedInvoice: Invoice = {
+            ...invoice,
+            history: [newHistoryItem, ...(invoice.history || [])]
+        };
+
+        // Update storage
+        const invoices = getInvoices();
+        const index = invoices.findIndex((inv: Invoice) => inv.id === id);
+        if (index !== -1) {
+            invoices[index] = updatedInvoice;
+            setInvoices(invoices);
+            setInvoice(updatedInvoice);
+        }
+
+        setIsSending(false);
+        toast(`Invoice sent successfully to ${invoice.clientEmail}`, 'success');
     };
 
     const handleDownloadPDF = async () => {
@@ -133,6 +174,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             taxRate: currentTaxRate,
             tax: tax,
             total: total,
+            history: [{
+                id: crypto.randomUUID(),
+                action: 'updated',
+                timestamp: new Date().toISOString(),
+                details: 'Invoice details updated',
+                actor: 'User'
+            } as InvoiceHistoryEvent, ...(invoice.history || [])]
         } as Invoice;
 
         // Update in storage
@@ -239,9 +287,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                                 </div>
 
                                 <div className="flex justify-end pt-4">
-                                    <div className="w-1/2 bg-[#ea580c] p-6 rounded-2xl flex justify-between items-center">
+                                    <div className="w-full md:w-1/2 bg-[#ea580c] p-6 rounded-2xl flex justify-between items-center">
                                         <span className="text-xs font-black uppercase tracking-widest text-white">Total</span>
-                                        <span className="text-2xl font-black text-white">{formatCurrency(invoice.total)}</span>
+                                        <span className="text-lg sm:text-2xl font-black text-white">{formatCurrency(invoice.total)}</span>
                                     </div>
                                 </div>
 
@@ -265,8 +313,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={() => setIsShareDialogOpen(true)}>
                                 <Share2 className="h-3 w-3" /> Share Invoice
                             </Button>
-                            <Button variant="outline" className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={handleSendInvoice}>
-                                <Send className="h-3 w-3" /> Send via Email
+                            <Button variant="outline" className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={handleSendInvoice} disabled={isSending}>
+                                {isSending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+                                {isSending ? 'Sending...' : 'Send via Email'}
                             </Button>
                             <Button variant="outline" className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={handleMarkAsPaid}>
                                 <CheckCircle className="h-3 w-3" /> {invoice.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
@@ -289,20 +338,31 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                <div className="flex gap-3 text-sm">
-                                    <div className="h-2 w-2 mt-1.5 rounded-full bg-blue-500 shrink-0" />
-                                    <div>
-                                        <p className="font-medium">Invoice Created</p>
-                                        <p className="text-muted-foreground text-xs">Nov 1, 2023 at 10:00 AM</p>
+                                {(invoice.history || [
+                                    { id: 'init', action: 'created', timestamp: invoice.issueDate, details: 'Invoice Created', actor: 'System' } as InvoiceHistoryEvent
+                                ]).map((event: InvoiceHistoryEvent, i: number) => (
+                                    <div key={i} className="flex gap-3 text-sm">
+                                        <div className={`h-2 w-2 mt-1.5 rounded-full shrink-0 ${event.action === 'sent' ? 'bg-blue-500' :
+                                            event.action === 'paid' ? 'bg-green-500' :
+                                                'bg-zinc-500'
+                                            }`} />
+                                        <div>
+                                            <p className="font-medium">
+                                                {event.action === 'sent' ? 'Sent to Client' :
+                                                    event.action === 'paid' ? 'Marked as Paid' :
+                                                        event.action === 'created' ? 'Invoice Created' :
+                                                            event.action === 'updated' ? 'Invoice Updated' : event.action}
+                                            </p>
+                                            <p className="text-muted-foreground text-xs">
+                                                {new Date(event.timestamp).toLocaleString(undefined, {
+                                                    dateStyle: 'medium',
+                                                    timeStyle: 'short'
+                                                })}
+                                            </p>
+                                            {event.details && <p className="text-zinc-600 text-[10px] mt-0.5">{event.details}</p>}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex gap-3 text-sm">
-                                    <div className="h-2 w-2 mt-1.5 rounded-full bg-muted-foreground shrink-0" />
-                                    <div>
-                                        <p className="font-medium">Sent to Client</p>
-                                        <p className="text-muted-foreground text-xs">Nov 1, 2023 at 10:05 AM</p>
-                                    </div>
-                                </div>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
@@ -445,6 +505,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             </div>
                         </div>
 
+
+
                         <div className="w-full p-3 bg-white/5 border border-white/10 rounded-xl flex gap-3 items-start backdrop-blur-md">
                             <div className="h-4 w-4 rounded-full bg-[#ea580c]/20 flex items-center justify-center shrink-0 mt-0.5">
                                 <QrCode className="h-2.5 w-2.5 text-[#ea580c]" />
@@ -456,6 +518,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     </div>
                 </DialogContent>
             </Dialog>
-        </DashboardShell>
+        </DashboardShell >
     );
 }

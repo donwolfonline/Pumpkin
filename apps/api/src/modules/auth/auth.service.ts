@@ -110,14 +110,15 @@ export class AuthService {
       relations: ['organization'],
     });
 
-    if (!member) {
+    if (!member && user.role !== 'client') {
       throw new UnauthorizedException(
         'User not associated with any organization',
       );
     }
 
     // Generate tokens
-    const tokens = await this.generateTokens(user.id, member.organizationId);
+    const organizationId = member?.organizationId || null;
+    const tokens = await this.generateTokens(user.id, organizationId);
 
     return {
       ...tokens,
@@ -126,13 +127,13 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        organizationId: member.organizationId,
-        role: member.role,
+        organizationId,
+        role: user.role, // Use global User role
       },
     };
   }
 
-  async generateTokens(userId: string, organizationId: string) {
+  async generateTokens(userId: string, organizationId: string | null) {
     const payload = { sub: userId, organizationId };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -149,10 +150,14 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async validateUser(userId: string, organizationId: string) {
+  async validateUser(userId: string, organizationId?: string | null) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       return null;
+    }
+
+    if (!organizationId) {
+      return user.role === 'client' ? { user, member: null } : null;
     }
 
     const member = await this.organizationMemberRepository.findOne({
@@ -184,5 +189,43 @@ export class AuthService {
       ...tokens,
       organization: member.organization,
     };
+  }
+
+  async autoRegisterClient(
+    email: string,
+    metadata: { firstName?: string; lastName?: string } = {},
+    organizationId?: string | null,
+  ) {
+    // Check if user already exists
+    const existingUser = await this.userRepository.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return existingUser;
+    }
+
+    const { firstName = 'Client', lastName = '' } = metadata;
+
+    // Generate a secure random password for the first time
+    const tempPassword = Math.random().toString(36).slice(-12);
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+
+    const user = this.userRepository.create({
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      role: 'client',
+    });
+
+    await this.userRepository.save(user);
+
+    // TODO: Send email with tempPassword
+    console.log(
+      `[CLIENT-PROVISIONING] Created account for ${email} with password: ${tempPassword}`,
+    );
+
+    return user;
   }
 }

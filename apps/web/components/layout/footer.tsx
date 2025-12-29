@@ -22,7 +22,8 @@ export function Footer() {
                         </p>
                     </div>
 
-                    <div>
+                    {/* Desktop: Normal columns */}
+                    <div className="hidden md:block">
                         <h4 className="font-bold mb-6 font-heading text-white uppercase tracking-widest text-sm">Game</h4>
                         <ul className="space-y-4 text-sm text-zinc-500">
                             <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
@@ -31,13 +32,37 @@ export function Footer() {
                         </ul>
                     </div>
 
-                    <div>
+                    <div className="hidden md:block">
                         <h4 className="font-bold mb-6 font-heading text-white uppercase tracking-widest text-sm">Legal</h4>
                         <ul className="space-y-4 text-sm text-zinc-500">
                             <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
                             <li><Link href="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
                             <li><Link href="/security" className="hover:text-primary transition-colors">Security</Link></li>
                         </ul>
+                    </div>
+
+                    {/* Mobile: Single Pill with all links */}
+                    <div className="md:hidden col-span-2">
+                        <div className="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <h4 className="font-bold mb-4 font-heading text-white uppercase tracking-widest text-xs">Game</h4>
+                                    <ul className="space-y-3 text-xs text-zinc-400">
+                                        <li><Link href="#features" className="hover:text-primary transition-colors">Features</Link></li>
+                                        <li><Link href="#pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
+                                        <li><Link href="/login" className="hover:text-primary transition-colors">Login</Link></li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold mb-4 font-heading text-white uppercase tracking-widest text-xs">Legal</h4>
+                                    <ul className="space-y-3 text-xs text-zinc-400">
+                                        <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link></li>
+                                        <li><Link href="/terms" className="hover:text-primary transition-colors">Terms</Link></li>
+                                        <li><Link href="/security" className="hover:text-primary transition-colors">Security</Link></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

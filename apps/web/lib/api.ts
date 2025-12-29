@@ -1,7 +1,9 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 import { Appointment } from './types/appointment';
 import { Contact } from './types/crm';
 import { Invoice } from './types/invoice';
+import { Contract } from './types/contract';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
 interface AuthTokens {
     accessToken: string;
@@ -13,9 +15,16 @@ export interface User {
     email: string;
     firstName: string;
     lastName: string;
-    organizationId: string;
+    organizationId?: string | null;
     role: string;
     avatar?: string;
+}
+
+export interface PortalStats {
+    totalDocuments: number;
+    totalInvoices: number;
+    pendingPayments: number;
+    unsignedDocuments: number;
 }
 
 class ApiClient {
@@ -63,27 +72,32 @@ class ApiClient {
             headers['Authorization'] = `Bearer ${this.accessToken}`;
         }
 
-        const response = await fetch(`${this.baseURL}${endpoint}`, {
-            ...options,
-            headers,
-        });
+        try {
+            const response = await fetch(`${this.baseURL}${endpoint}`, {
+                ...options,
+                headers,
+            });
 
-        if (response.status === 401 && !endpoint.includes('/auth/login')) {
-            // Token expired or invalid, clear everything and redirect to login
-            this.clearTokens();
-            if (typeof window !== 'undefined') {
-                localStorage.removeItem('user');
-                window.location.href = '/login';
+            if (response.status === 401 && !endpoint.includes('/auth/login')) {
+                // Token expired or invalid, clear everything and redirect to login
+                this.clearTokens();
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                }
+                throw new Error('Unauthorized');
             }
-            throw new Error('Unauthorized');
-        }
 
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({ message: 'Request failed' }));
-            throw new Error(error.message || `HTTP ${response.status}`);
-        }
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({ message: 'Request failed' }));
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
 
-        return response.json();
+            return response.json();
+        } catch (error) {
+            console.error(`API Request Failed for ${this.baseURL}${endpoint}:`, error);
+            throw error;
+        }
     }
 
     // Auth endpoints
@@ -270,12 +284,63 @@ class ApiClient {
         });
     }
 
-    // CRM
-    async getContacts() {
-        return this.request<import('./types/crm').Contact[]>('/crm/contacts');
+    // Portal
+    // Portal
+    // Portal
+    async getPortalDashboard() {
+        // Check if we are a client logged in with real credentials
+        const currentUser = this.getUser();
+
+        if (typeof window !== 'undefined' && currentUser?.role === 'client' && currentUser.email) {
+            const { getInvoicesForClient, getContractsForClient } = await import('./storage-utils');
+            const localInvoices = getInvoicesForClient(currentUser.email);
+            const localDocuments = getContractsForClient(currentUser.email);
+
+            // If we found local data matching this client, return it
+            if (localInvoices.length > 0 || localDocuments.length > 0) {
+                return Promise.resolve({
+                    documents: localDocuments,
+                    invoices: localInvoices,
+                    stats: {
+                        totalDocuments: localDocuments.length,
+                        totalInvoices: localInvoices.length,
+                        pendingPayments: localInvoices.filter((i: Invoice) => i.status !== 'paid').length,
+                        unsignedDocuments: localDocuments.filter((d: Contract) => d.status !== 'signed').length
+                    }
+                });
+            }
+        }
+
+        return this.request<{
+            documents: Contract[];
+            invoices: Invoice[];
+            stats: PortalStats;
+        }>('/portal/dashboard');
     }
 
-    // Add other API methods as needed...
+    async getPortalDocuments() {
+        const currentUser = this.getUser();
+        if (typeof window !== 'undefined' && currentUser?.role === 'client' && currentUser.email) {
+            const { getContractsForClient } = await import('./storage-utils');
+            const docs = getContractsForClient(currentUser.email);
+            if (docs.length > 0) return Promise.resolve(docs);
+        }
+        return this.request<Contract[]>('/portal/documents');
+    }
+
+    async getPortalInvoices() {
+        const currentUser = this.getUser();
+        if (typeof window !== 'undefined' && currentUser?.role === 'client' && currentUser.email) {
+            const { getInvoicesForClient } = await import('./storage-utils');
+            const invs = getInvoicesForClient(currentUser.email);
+            if (invs.length > 0) return Promise.resolve(invs);
+        }
+        return this.request<Invoice[]>('/portal/invoices');
+    }
+
+    async getHealth() {
+        return this.request<any>('/health');
+    }
 }
 
 export const api = new ApiClient();

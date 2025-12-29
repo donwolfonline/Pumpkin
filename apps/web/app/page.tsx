@@ -2,6 +2,7 @@ import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/landing/hero";
 import { Problem } from "@/components/landing/problem";
 import { Solution } from "@/components/landing/solution";
+import { ClientPortal } from "@/components/landing/client-portal";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { PumpkinLineup } from "@/components/landing/pumpkin-lineup";
 import { MobileShowcase } from "@/components/landing/mobile-showcase";
@@ -21,6 +22,7 @@ export default function Home() {
         <Hero />
         <Problem />
         <Solution />
+        <ClientPortal />
         <HowItWorks />
         <PumpkinLineup />
         <MobileShowcase />

@@ -39,4 +39,13 @@ export interface Invoice {
     notes?: string;
     terms?: string; // Custom terms for this invoice
     updatedAt?: string; // ISO Date
+    history?: InvoiceHistoryEvent[];
+}
+
+export interface InvoiceHistoryEvent {
+    id: string;
+    action: 'created' | 'sent' | 'viewed' | 'paid' | 'updated';
+    timestamp: string;
+    details?: string;
+    actor?: string; // 'System', 'User', 'Client'
 }

@@ -9,12 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { User, CreditCard, Users, Bell, Shield, Building2, Upload, Image as ImageIcon, Trash2, Check, Loader2 } from 'lucide-react';
+import { User, CreditCard, Users, Bell, Shield, Building2, Upload, Image as ImageIcon, Trash2, Check, Loader2, Database } from 'lucide-react';
 import { api } from '@/lib/api';
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { getOrganizationBranding, setOrganizationBranding, getUserData, setUserData } from '@/lib/storage-utils';
+import { getOrganizationBranding, setOrganizationBranding, getUserData, setUserData, scanForOrphanData, recoverOrphanData, deepScanForData, recoverSpecificKey } from '@/lib/storage-utils';
 import { OrganizationBranding } from '@/lib/types/organization-settings';
 import { getBillingDaysRemaining } from '@/lib/subscription-utils';
 
@@ -78,6 +78,10 @@ export default function SettingsPage() {
     const [paymentDetails, setPaymentDetails] = useState({ number: '', expiry: '', cvc: '', name: '' });
     const [nextPaymentDate, setNextPaymentDate] = useState<string>('N/A');
 
+    // --- Data Recovery State ---
+    const [orphanStats, setOrphanStats] = useState({ found: false, count: 0 });
+    const [deepScanResults, setDeepScanResults] = useState<{ key: string; type: string; summary: string }[]>([]);
+
     // --- Effects ---
     // Calculate next payment date on mount
     useEffect(() => {
@@ -85,7 +89,20 @@ export default function SettingsPage() {
         const date = new Date();
         date.setDate(date.getDate() + days);
         setNextPaymentDate(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
-    }, []);
+
+        // Scan for orphan data (filtered by current user email/company)
+        const user = api.getUser();
+        const context = {
+            email: user?.email || profile.email,
+            companyName: company.companyName
+        };
+
+        setOrphanStats(scanForOrphanData(context));
+
+        // Run deep scan matching this user's identity
+        const deepScan = deepScanForData(context);
+        setDeepScanResults(deepScan.matches);
+    }, [company.companyName, profile.email]);
 
     // --- Handlers ---
     const handleSaveCompany = () => {
@@ -132,6 +149,14 @@ export default function SettingsPage() {
         }
     };
 
+    const handleWipeData = async () => {
+        if (confirm("DANGER: This will wipe ALL local storage, including guest data and other sessions. Are you sure?")) {
+            const { dangerouslyClearAllLocalStorage } = await import('@/lib/storage-utils');
+            dangerouslyClearAllLocalStorage();
+            window.location.reload();
+        }
+    };
+
     const handleAddTeamMember = () => {
         if (!newMemberEmail) return;
         const newMember: TeamMember = { id: crypto.randomUUID(), name: 'Pending User', email: newMemberEmail, role: 'Member' };
@@ -156,6 +181,31 @@ export default function SettingsPage() {
             toast('Security updated & Password changed!', 'success');
             setPasswordData({ current: '', new: '', confirm: '' });
         } else toast('Security settings updated.', 'success');
+    };
+
+    const handleRecoverData = () => {
+        const user = api.getUser();
+        const context = { email: user?.email || profile.email, companyName: company.companyName };
+        const result = recoverOrphanData(context);
+        if (result.success) {
+            toast(`Successfully recovered ${result.recoveredCount} items!`, 'success');
+            setOrphanStats({ found: false, count: 0 });
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            toast('No matching data found.', 'error');
+        }
+    };
+
+    const handleDeepRecover = (key: string, type: string) => {
+        const user = api.getUser();
+        const context = { email: user?.email || profile.email, companyName: company.companyName };
+        const success = recoverSpecificKey(key, 'auto', context);
+        if (success) {
+            toast(`Recovered ${type} from key: ${key}`, 'success');
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            toast('Failed to recover specific data.', 'error');
+        }
     };
 
     // --- Payment Logic ---
@@ -236,7 +286,7 @@ export default function SettingsPage() {
             <Tabs defaultValue="billing" className="flex flex-col md:flex-row gap-8">
                 <aside className="w-full md:w-64 shrink-0">
                     <TabsList className="flex flex-col h-auto w-full justify-start gap-1 bg-transparent p-0">
-                        {['company', 'profile', 'billing', 'team', 'notifications', 'security'].map(tab => (
+                        {['company', 'profile', 'billing', 'team', 'notifications', 'security', 'data'].map(tab => (
                             <TabsTrigger key={tab} value={tab} className="w-full justify-start px-4 py-3 rounded-xl data-[state=active]:bg-primary/10 data-[state=active]:text-primary font-bold uppercase tracking-widest text-[10px] border border-transparent data-[state=active]:border-primary/20 transition-all">
                                 {tab === 'company' && <Building2 className="mr-3 h-4 w-4" />}
                                 {tab === 'profile' && <User className="mr-3 h-4 w-4" />}
@@ -244,6 +294,7 @@ export default function SettingsPage() {
                                 {tab === 'team' && <Users className="mr-3 h-4 w-4" />}
                                 {tab === 'notifications' && <Bell className="mr-3 h-4 w-4" />}
                                 {tab === 'security' && <Shield className="mr-3 h-4 w-4" />}
+                                {tab === 'data' && <Database className="mr-3 h-4 w-4" />}
                                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
                             </TabsTrigger>
                         ))}
@@ -415,6 +466,83 @@ export default function SettingsPage() {
                                 <div className="pt-6 border-t border-white/5 flex items-center justify-between"><div className="space-y-1"><p className="text-xs font-bold text-white uppercase tracking-widest">Enable 2FA</p></div><Switch checked={security.twoFactorEnabled} onCheckedChange={c => setSecurity({ ...security, twoFactorEnabled: c })} /></div>
                             </CardContent>
                             <CardFooter className="border-t border-white/5 pt-6"><Button onClick={handleSaveSecurity} className="h-12 px-8 rounded-xl bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px]">Update Security</Button></CardFooter>
+                        </Card>
+                    </TabsContent>
+
+                    {/* --- DATA RECOVERY --- */}
+                    <TabsContent value="data" className="space-y-6 mt-0">
+                        <Card className="bg-black/20 border-white/5 rounded-2xl shadow-xl backdrop-blur-xl">
+                            <CardHeader>
+                                <CardTitle className="text-white font-heading uppercase tracking-widest text-sm">Data Recovery</CardTitle>
+                                <CardDescription className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Recover data from previous sessions.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4 md:space-y-6 p-4 md:p-6">
+                                <div className="p-4 md:p-6 rounded-xl bg-white/5 border border-white/5 space-y-4">
+                                    <div className="flex flex-col sm:flex-row items-start gap-4">
+                                        <div className={`p-3 rounded-full flex-shrink-0 ${orphanStats.found ? 'bg-orange-500/20 text-orange-500' : 'bg-green-500/20 text-green-500'}`}>
+                                            <Database className="h-6 w-6" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="font-bold text-white uppercase tracking-widest text-sm">
+                                                {orphanStats.found ? 'Orphaned Data Found' : 'No Lost Data Found'}
+                                            </h3>
+                                            <p className="text-xs text-zinc-400 leading-relaxed">
+                                                {orphanStats.found
+                                                    ? `We found ${orphanStats.count} items (invoices, clients, etc.) from a previous session or guest account. You can merge them into your current account below.`
+                                                    : 'We scanned your local storage and didn\'t find any orphaned data. Your valid data should be visible.'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {orphanStats.found && (
+                                        <Button onClick={handleRecoverData} className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold uppercase tracking-widest text-[10px] rounded-xl">
+                                            Recover & Merge {orphanStats.count} Items
+                                        </Button>
+                                    )}
+
+                                    {/* Deep Scan Results */}
+                                    {deepScanResults.length > 0 && (
+                                        <div className="pt-6 border-t border-white/5 space-y-4">
+                                            <h3 className="font-bold text-white uppercase tracking-widest text-xs">Deep Scan Candidates</h3>
+                                            <p className="text-[10px] text-zinc-500">We found these potential matches based on your &quot;Citrullix&quot; request or recognizable data shapes.</p>
+
+                                            <div className="space-y-3">
+                                                {deepScanResults.map((result, idx) => (
+                                                    <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 md:p-4 rounded-xl bg-white/5 border border-white/5 gap-3 md:gap-4 transition-colors hover:bg-white/[0.07]">
+                                                        <div className="overflow-hidden space-y-1 flex-1 w-full">
+                                                            <p className="text-xs font-bold text-white truncate">{result.summary}</p>
+                                                            <p className="text-[10px] text-zinc-500 font-mono truncate opacity-60">{result.key}</p>
+                                                            <div className="pt-1">
+                                                                <span className="inline-block px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-wider">{result.type}</span>
+                                                            </div>
+                                                        </div>
+                                                        <Button
+                                                            onClick={() => handleDeepRecover(result.key, result.type)}
+                                                            variant="outline"
+                                                            className="h-9 px-6 w-full sm:w-auto text-[10px] font-bold uppercase tracking-widest border-primary/20 hover:bg-primary/20 text-primary rounded-lg transition-all"
+                                                        >
+                                                            Restore
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Wipe Data Section */}
+                                    <div className="pt-6 border-t border-white/5 space-y-3">
+                                        <h3 className="font-bold text-red-500 uppercase tracking-widest text-xs">Danger Zone</h3>
+                                        <p className="text-[10px] text-zinc-500">If you see persistent mock data (like &quot;Michael Duo&quot;), use this to wipe your local cache completely.</p>
+                                        <Button
+                                            onClick={handleWipeData}
+                                            variant="outline"
+                                            className="w-full h-11 border-red-500/20 hover:bg-red-500/10 text-red-400 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all"
+                                        >
+                                            Wipe All Local State
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
                         </Card>
                     </TabsContent>
                 </div>

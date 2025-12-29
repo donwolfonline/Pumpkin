@@ -12,6 +12,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { AutomationModule } from './modules/automation/automation.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { HealthModule } from './modules/health/health.module';
+import { ClientPortalModule } from './modules/client-portal/client-portal.module';
 import { DummyDataSeeder } from './common/seed/dummy-data.seeder';
 import { User } from './modules/auth/entities/user.entity';
 import { Organization } from './modules/tenant/entities/organization.entity';
@@ -79,6 +80,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
       BookingType,
       Automation,
     ]),
+    ClientPortalModule,
   ],
   controllers: [AppController],
   providers: [
@@ -90,4 +92,4 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/layout/footer";
+import { api } from "@/lib/api";
 import { CheckCircle, Shield, Database, Server, Lock, Activity, LucideIcon, Loader2 } from "lucide-react";
 
 interface StatusItem {
@@ -33,20 +34,21 @@ export default function StatusPage() {
     const [healthData, setHealthData] = useState<HealthData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [apiUrl, setApiUrl] = useState<string>('');
 
     useEffect(() => {
+        // Get the API URL being used
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+        setApiUrl(API_URL);
+
         const fetchHealthData = async () => {
             try {
-                const response = await fetch('http://localhost:4000/api/health');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch health data');
-                }
-                const data = await response.json();
-                setHealthData(data);
+                const data = await api.getHealth();
+                setHealthData(data as HealthData);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching health data:', err);
-                setError('Unable to fetch system status. Using cached data.');
+                setError(`Cannot connect to backend API at ${API_URL}/health`);
                 // Fallback to default data
                 setHealthData({
                     timestamp: new Date().toISOString(),
@@ -128,14 +130,28 @@ export default function StatusPage() {
         <div className="min-h-screen bg-[#051c1c] font-sans text-foreground selection:bg-primary/20">
             <Navbar />
             <main className="pt-32 pb-20 px-6 max-w-6xl mx-auto">
+                {/* Connection Error Banner */}
+                {error && (
+                    <div className="mb-8 p-6 rounded-2xl bg-yellow-500/10 border-2 border-yellow-500/30 text-yellow-200">
+                        <div className="flex items-start gap-4">
+                            <Activity className="w-6 h-6 text-yellow-400 mt-1 animate-pulse" />
+                            <div className="flex-1">
+                                <h3 className="text-lg font-bold text-yellow-300 mb-2">Backend API Not Reachable</h3>
+                                <p className="text-sm text-yellow-200 mb-3 font-medium">{error}</p>
+                                <div className="p-4 rounded-lg bg-black/20 border border-yellow-500/20 font-mono text-xs space-y-2">
+                                    <p className="text-zinc-400">To start the backend API:</p>
+                                    <code className="block text-yellow-300">cd apps/api</code>
+                                    <code className="block text-yellow-300">npm run start:dev</code>
+                                    <p className="text-zinc-500 mt-3">Current API URL: <span className="text-yellow-400">{apiUrl}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <div className="text-center mb-12">
                     <h1 className="text-4xl md:text-5xl font-bold font-heading text-white mb-4">System Status</h1>
                     <p className="text-zinc-400 text-lg">Real-time monitoring of Pumpkin&apos;s infrastructure and services</p>
-                    {error && (
-                        <div className="mt-4 px-4 py-2 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 text-sm font-bold uppercase tracking-widest inline-block">
-                            {error}
-                        </div>
-                    )}
                 </div>
 
                 {/* Overall Status */}

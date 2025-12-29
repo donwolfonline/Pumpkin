@@ -84,6 +84,13 @@ export default function PaymentsPage() {
             taxRate: 0,
             tax: 0,
             total: parseFloat(formData.get('amount') as string) || 0,
+            history: [{
+                id: crypto.randomUUID(),
+                action: 'created',
+                timestamp: new Date().toISOString(),
+                details: 'Invoice Created',
+                actor: 'User'
+            }]
         };
 
         // Add to state and storage

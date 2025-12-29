@@ -17,6 +17,8 @@ import { DocumentVersion } from '../entities/document-version.entity';
 import { CreateDocumentTemplateDto } from '../dto/create-template.dto';
 import { CreateDocumentDto } from '../dto/create-document.dto';
 import { SignDocumentDto } from '../dto/sign-document.dto';
+import { AuthService } from '../../auth/auth.service';
+import { Contact } from '../../crm/entities/contact.entity';
 
 @Injectable()
 export class DocumentsService {
@@ -29,7 +31,10 @@ export class DocumentsService {
     private readonly signatureRepository: Repository<DocumentSignature>,
     @InjectRepository(DocumentVersion)
     private readonly versionRepository: Repository<DocumentVersion>,
+    @InjectRepository(Contact)
+    private readonly contactRepository: Repository<Contact>,
     private readonly dataSource: DataSource,
+    private readonly authService: AuthService,
   ) { }
 
   // --- Template Methods ---
@@ -88,6 +93,25 @@ export class DocumentsService {
       await queryRunner.manager.save(savedDocument);
 
       await queryRunner.commitTransaction();
+
+      // Trigger auto-registration if contact is present
+      if (savedDocument.contactId) {
+        const contact = await this.contactRepository.findOne({
+          where: { id: savedDocument.contactId },
+        });
+        if (contact?.email) {
+          const nameParts = (contact.name || '').split(' ');
+          await this.authService.autoRegisterClient(
+            contact.email,
+            {
+              firstName: nameParts[0] || 'Client',
+              lastName: nameParts.length > 1 ? nameParts.slice(1).join(' ') : '',
+            },
+            organizationId,
+          );
+        }
+      }
+
       return savedDocument;
     } catch (err) {
       await queryRunner.rollbackTransaction();

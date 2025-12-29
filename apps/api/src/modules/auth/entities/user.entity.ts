@@ -13,6 +13,13 @@ export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'provider',
+  })
+  role: string;
+
   @Column({ unique: true })
   email: string;
 

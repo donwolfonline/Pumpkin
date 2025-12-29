@@ -1,3 +1,8 @@
+export enum UserRole {
+    PROVIDER = 'provider',
+    CLIENT = 'client',
+}
+
 // User types
 export interface User {
     id: string;

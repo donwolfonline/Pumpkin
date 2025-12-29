@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { ArrowRight, Mail, Lock, Loader2 } from "lucide-react"
+import { ArrowRight, Mail, Lock, Loader2, Sparkles } from "lucide-react"
 import { Logo } from "@/components/branding/logo"
 import { api } from "@/lib/api"
 
@@ -171,6 +171,23 @@ export default function LoginPage() {
                                 GitHub
                             </Button>
                         </div>
+                    </div>
+
+                    {/* Client Portal Link */}
+                    <div className="mt-8 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/[0.07] transition-all">
+                        <p className="text-center text-sm text-zinc-400 mb-3 font-medium">
+                            Looking for the Client Portal?
+                        </p>
+                        <Link href="/portal/login" className="block">
+                            <Button
+                                variant="outline"
+                                className="w-full h-12 rounded-xl bg-orange-500/10 border-orange-500/20 hover:bg-orange-500/20 text-orange-400 font-bold gap-2 transition-all hover:scale-[1.02] shadow-lg shadow-orange-500/5"
+                            >
+                                <Sparkles className="w-4 h-4" />
+                                Access Client Portal
+                                <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </Link>
                     </div>
 
                     <p className="mt-10 text-center text-sm font-bold text-zinc-500 uppercase tracking-widest">

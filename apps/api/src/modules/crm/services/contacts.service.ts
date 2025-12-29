@@ -3,13 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Contact } from '../entities/contact.entity';
 import { CreateContactDto } from '../dto/create-contact.dto';
+import { AuthService } from '../../auth/auth.service';
 
 @Injectable()
 export class ContactsService {
   constructor(
     @InjectRepository(Contact)
     private readonly contactRepository: Repository<Contact>,
-  ) {}
+    private readonly authService: AuthService,
+  ) { }
 
   async create(
     organizationId: string,
@@ -19,7 +21,24 @@ export class ContactsService {
       ...createContactDto,
       organizationId,
     });
-    return this.contactRepository.save(contact);
+    const savedContact = await this.contactRepository.save(contact);
+
+    if (savedContact.email) {
+      const nameParts = (savedContact.name || '').split(' ');
+      const firstName = nameParts[0] || 'Client';
+      const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+      await this.authService.autoRegisterClient(
+        savedContact.email,
+        {
+          firstName,
+          lastName,
+        },
+        organizationId,
+      );
+    }
+
+    return savedContact;
   }
 
   async findAll(organizationId: string): Promise<Contact[]> {

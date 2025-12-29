@@ -27,6 +27,10 @@ export class Invoice {
     @Index()
     stripeInvoiceId: string;
 
+    @Column({ nullable: true })
+    @Index()
+    customerEmail: string;
+
     @Column('decimal', { precision: 10, scale: 2 })
     amountPaid: number;
 

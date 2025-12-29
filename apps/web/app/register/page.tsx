@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowRight, Mail, Lock, User, Building, Loader2 } from "lucide-react"
 import { Logo } from "@/components/branding/logo"
 import { api } from "@/lib/api"
+import { setOrganizationBranding, DEFAULT_BRANDING } from "@/lib/storage-utils"
 
 export default function RegisterPage() {
     const router = useRouter()
@@ -46,6 +47,13 @@ export default function RegisterPage() {
                 lastName,
                 organizationName
             })
+
+            // Initialize local branding for the new organization
+            setOrganizationBranding({
+                ...DEFAULT_BRANDING,
+                companyName: organizationName,
+                email: email
+            });
 
             // If a paid plan was selected, redirect to checkout
             if (selectedPlan && selectedPlan !== 'seedling') {

@@ -7,6 +7,7 @@ import { Payment, PaymentStatus } from '../entities/payment.entity';
 import { Subscription as SubscriptionEntity } from '../entities/subscription.entity';
 import { Invoice } from '../entities/invoice.entity';
 import { CreatePaymentIntentDto } from '../dto/create-payment-intent.dto';
+import { AuthService } from '../../auth/auth.service';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +21,7 @@ export class PaymentsService {
     private subscriptionRepo: Repository<SubscriptionEntity>,
     @InjectRepository(Invoice)
     private invoiceRepo: Repository<Invoice>,
+    private authService: AuthService,
   ) {
     const secretKey = this.configService.get<string>(
       'STRIPE_SECRET_KEY',
@@ -164,9 +166,7 @@ export class PaymentsService {
   }
 
   private async syncSubscription(stripeSubscription: Stripe.Subscription) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const sub: any = stripeSubscription;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     const orgId = sub.metadata?.organizationId as string;
     if (!orgId) return;
 
@@ -181,12 +181,9 @@ export class PaymentsService {
       });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     subRecord.stripePriceId = sub.items.data[0].price.id as string;
     subRecord.status = sub.status as string;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     subRecord.currentPeriodEnd = new Date((sub.current_period_end as number) * 1000);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     subRecord.cancelAtPeriodEnd = sub.cancel_at_period_end as boolean;
 
     await this.subscriptionRepo.save(subRecord);
@@ -202,9 +199,19 @@ export class PaymentsService {
       amountPaid: stripeInvoice.amount_paid / 100,
       currency: stripeInvoice.currency,
       invoicePdfUrl: stripeInvoice.invoice_pdf || undefined,
+      customerEmail: stripeInvoice.customer_email || undefined,
       status: 'paid',
     });
 
     await this.invoiceRepo.save(invoice);
+
+    // Trigger auto-registration for the customer email
+    if (stripeInvoice.customer_email) {
+      await this.authService.autoRegisterClient(
+        stripeInvoice.customer_email,
+        {},
+        orgId,
+      );
+    }
   }
 }
