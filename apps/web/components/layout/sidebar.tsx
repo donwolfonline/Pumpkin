@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -24,6 +25,11 @@ import {
 type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Sidebar({ className }: SidebarProps) {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const pathname = usePathname();
     const user = useUser();
     const subscriptionStatus = getSubscriptionStatus();
@@ -88,7 +94,7 @@ export function Sidebar({ className }: SidebarProps) {
                 </div>
 
                 {/* Upgrade Card for Free Users */}
-                {subscriptionStatus.plan === 'free' && (
+                {mounted && subscriptionStatus.plan === 'free' && (
                     <div className="px-4 mt-4 pb-4">
                         <div className={`rounded-2xl bg-gradient-to-br from-[#0a2c28] to-[#051c1c] border p-4 shadow-2xl ${subscriptionStatus.daysRemaining <= 3 ? 'border-red-500/30' : 'border-white/5'
                             }`}>

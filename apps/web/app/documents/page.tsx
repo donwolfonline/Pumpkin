@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { jsPDF } from "jspdf";
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 
-interface Document {
+interface PumpkinDocument {
     id: string;
     title: string;
     type: string;
@@ -37,8 +37,76 @@ import { Textarea } from '@/components/ui/textarea';
 
 import { Contact } from '@/lib/types/crm';
 
+const DEFAULT_DOCUMENTS: PumpkinDocument[] = [
+    {
+        id: '155b412e-1317-4f68-9646-6468449c2358',
+        title: 'Standard Service Agreement',
+        type: 'Template',
+        client: 'Internal',
+        date: new Date().toLocaleDateString(),
+        status: 'draft',
+        content: `SERVICE AGREEMENT
+
+BETWEEN: {{client_name}}
+AND: {{company_name}}
+
+1. SERVICES
+Provider agrees to perform the services described in the attached SOW.
+
+2. COMPENSATION
+Client agrees to pay Provider as outlined in the attached Invoice.
+
+3. CONFIDENTIALITY
+Both parties agree to keep all proprietary information confidential.
+
+4. TERM
+This agreement shall commence on {{date}} and continue until completion.`
+    },
+    {
+        id: '7d3539fc-2244-4632-9cb8-685b8004f762',
+        title: 'Project Proposal Structure',
+        type: 'Template',
+        client: 'Internal',
+        date: new Date().toLocaleDateString(),
+        status: 'draft',
+        content: `PROJECT PROPOSAL
+Prepared for: {{client_name}}
+
+1. EXECUTIVE SUMMARY
+Brief overview of the project goals.
+
+2. PROJECT SCOPE
+Detailed description of deliverables.
+
+3. TIMELINE
+Phase 1: Discovery
+Phase 2: Design
+Phase 3: Development
+
+4. INVESTMENT
+Total Project Cost: $X,XXX`
+    },
+    {
+        id: '45d4791a-7b3b-4866-9351-512595f48743',
+        title: 'Non-Disclosure Agreement (NDA)',
+        type: 'Template',
+        client: 'Internal',
+        date: new Date().toLocaleDateString(),
+        status: 'draft',
+        content: `NON-DISCLOSURE AGREEMENT
+
+This Agreement is made between {{company_name}} and {{client_name}}.
+
+1. DEFINITION OF CONFIDENTIAL INFORMATION
+...
+
+2. OBLIGATIONS
+Receiving Party shall hold and maintain the Confidential Information in strictest confidence.`
+    }
+];
+
 export default function DocumentsPage() {
-    const [documents, setDocuments] = useState<Document[]>([]);
+    const [documents, setDocuments] = useState<PumpkinDocument[]>([]);
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -54,185 +122,60 @@ export default function DocumentsPage() {
 
     // Load data on mount
     useEffect(() => {
-        const saved = localStorage.getItem('pumpkin_documents');
-        if (saved) {
+        const loadData = () => {
             try {
-                const parsed: Document[] = JSON.parse(saved);
-                // Migration check: if old docs had numeric IDs or missing fields
-                if (parsed.length > 0 && typeof parsed[0].id === 'number') {
-                    const migrated = parsed.map((doc: any) => ({
-                        ...doc,
-                        id: String(doc.id),
-                        status: doc.status || 'draft',
-                        content: doc.content || ''
-                    }));
-                    setDocuments(migrated);
-                } else {
-                    // Ensure all docs have an ID and content for existing string IDs
-                    const migrated = parsed.map(doc => ({
-                        ...doc,
-                        id: doc.id || crypto.randomUUID(),
-                        content: doc.content || ''
-                    }));
-                    setDocuments(migrated);
-                }
-            } catch (e) {
-                console.error("Failed to parse documents", e);
-                // Fallback to seeding defaults if parsing fails
-                const defaults: Document[] = [
-                    {
-                        id: crypto.randomUUID(),
-                        title: 'Standard Service Agreement',
-                        type: 'Template',
-                        client: 'Internal',
-                        date: new Date().toLocaleDateString(),
-                        status: 'draft',
-                        content: `SERVICE AGREEMENT
+                // Load Documents
+                const saved = localStorage.getItem('pumpkin_documents');
+                let initialDocs: PumpkinDocument[] = [];
 
-BETWEEN: {{client_name}}
-AND: {{company_name}}
-
-1. SERVICES
-Provider agrees to perform the services described in the attached SOW.
-
-2. COMPENSATION
-Client agrees to pay Provider as outlined in the attached Invoice.
-
-3. CONFIDENTIALITY
-Both parties agree to keep all proprietary information confidential.
-
-4. TERM
-This agreement shall commence on {{date}} and continue until completion.`
-                    },
-                    {
-                        id: crypto.randomUUID(),
-                        title: 'Project Proposal Structure',
-                        type: 'Template',
-                        client: 'Internal',
-                        date: new Date().toLocaleDateString(),
-                        status: 'draft',
-                        content: `PROJECT PROPOSAL
-Prepared for: {{client_name}}
-
-1. EXECUTIVE SUMMARY
-Brief overview of the project goals.
-
-2. PROJECT SCOPE
-Detailed description of deliverables.
-
-3. TIMELINE
-Phase 1: Discovery
-Phase 2: Design
-Phase 3: Development
-
-4. INVESTMENT
-Total Project Cost: $X,XXX`
-                    },
-                    {
-                        id: crypto.randomUUID(),
-                        title: 'Non-Disclosure Agreement (NDA)',
-                        type: 'Template',
-                        client: 'Internal',
-                        date: new Date().toLocaleDateString(),
-                        status: 'draft',
-                        content: `NON-DISCLOSURE AGREEMENT
-
-This Agreement is made between {{company_name}} and {{client_name}}.
-
-1. DEFINITION OF CONFIDENTIAL INFORMATION
-...
-
-2. OBLIGATIONS
-Receiving Party shall hold and maintain the Confidential Information in strictest confidence.`
+                if (saved) {
+                    try {
+                        const parsed: PumpkinDocument[] = JSON.parse(saved);
+                        // Migration check: if old docs had numeric IDs or missing fields
+                        if (parsed.length > 0 && typeof (parsed[0] as { id: unknown }).id === 'number') {
+                            initialDocs = parsed.map(doc => ({
+                                ...doc,
+                                id: String(doc.id),
+                                status: doc.status || 'draft',
+                                content: doc.content || ''
+                            } as PumpkinDocument));
+                        } else {
+                            // Ensure all docs have an ID and content for existing string IDs
+                            initialDocs = parsed.map(doc => ({
+                                ...doc,
+                                id: doc.id || crypto.randomUUID(),
+                                content: doc.content || ''
+                            }));
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse documents", e);
+                        initialDocs = DEFAULT_DOCUMENTS;
+                        localStorage.setItem('pumpkin_documents', JSON.stringify(DEFAULT_DOCUMENTS));
                     }
-                ];
-                setDocuments(defaults);
-                localStorage.setItem('pumpkin_documents', JSON.stringify(defaults));
-            }
-        } else {
-            // Seed defaults if no documents found
-            const defaults: Document[] = [
-                {
-                    id: crypto.randomUUID(),
-                    title: 'Standard Service Agreement',
-                    type: 'Template',
-                    client: 'Internal',
-                    date: new Date().toLocaleDateString(),
-                    status: 'draft',
-                    content: `SERVICE AGREEMENT
-
-BETWEEN: {{client_name}}
-AND: {{company_name}}
-
-1. SERVICES
-Provider agrees to perform the services described in the attached SOW.
-
-2. COMPENSATION
-Client agrees to pay Provider as outlined in the attached Invoice.
-
-3. CONFIDENTIALITY
-Both parties agree to keep all proprietary information confidential.
-
-4. TERM
-This agreement shall commence on {{date}} and continue until completion.`
-                },
-                {
-                    id: crypto.randomUUID(),
-                    title: 'Project Proposal Structure',
-                    type: 'Template',
-                    client: 'Internal',
-                    date: new Date().toLocaleDateString(),
-                    status: 'draft',
-                    content: `PROJECT PROPOSAL
-Prepared for: {{client_name}}
-
-1. EXECUTIVE SUMMARY
-Brief overview of the project goals.
-
-2. PROJECT SCOPE
-Detailed description of deliverables.
-
-3. TIMELINE
-Phase 1: Discovery
-Phase 2: Design
-Phase 3: Development
-
-4. INVESTMENT
-Total Project Cost: $X,XXX`
-                },
-                {
-                    id: crypto.randomUUID(),
-                    title: 'Non-Disclosure Agreement (NDA)',
-                    type: 'Template',
-                    client: 'Internal',
-                    date: new Date().toLocaleDateString(),
-                    status: 'draft',
-                    content: `NON-DISCLOSURE AGREEMENT
-
-This Agreement is made between {{company_name}} and {{client_name}}.
-
-1. DEFINITION OF CONFIDENTIAL INFORMATION
-...
-
-2. OBLIGATIONS
-Receiving Party shall hold and maintain the Confidential Information in strictest confidence.`
+                } else {
+                    initialDocs = DEFAULT_DOCUMENTS;
+                    localStorage.setItem('pumpkin_documents', JSON.stringify(DEFAULT_DOCUMENTS));
                 }
-            ];
-            setDocuments(defaults);
-            localStorage.setItem('pumpkin_documents', JSON.stringify(defaults));
-        }
 
-        // Load Contacts
-        const savedContacts = localStorage.getItem('pumpkin_contacts');
-        if (savedContacts) {
-            try {
-                setContacts(JSON.parse(savedContacts));
+                setDocuments(initialDocs);
+
+                // Load Contacts
+                const savedContacts = localStorage.getItem('pumpkin_contacts');
+                if (savedContacts) {
+                    try {
+                        setContacts(JSON.parse(savedContacts));
+                    } catch (error) {
+                        console.error('Failed to load contacts:', error);
+                    }
+                }
             } catch (error) {
-                console.error('Failed to load contacts:', error);
+                console.error("Error loading initial data:", error);
+            } finally {
+                setIsLoading(false);
             }
-        }
+        };
 
-        setIsLoading(false);
+        loadData();
     }, []);
 
     // Save to localStorage whenever documents change
@@ -277,7 +220,7 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
             toast('Document updated successfully', 'success');
         } else {
             // Create new
-            const newDoc: Document = {
+            const newDoc: PumpkinDocument = {
                 id: crypto.randomUUID(),
                 title: title || 'Untitled Document',
                 type: selectedType,
@@ -413,7 +356,7 @@ Receiving Party shall hold and maintain the Confidential Information in strictes
         setIsDialogOpen(true);
     };
 
-    const openEditDialog = (doc: Document) => {
+    const openEditDialog = (doc: PumpkinDocument) => {
         setEditingId(doc.id);
         setTitle(doc.title);
         setContent(doc.content || '');

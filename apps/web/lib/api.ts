@@ -1,4 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { Appointment } from './types/appointment';
+import { Contact } from './types/crm';
+import { Invoice } from './types/invoice';
 
 interface AuthTokens {
     accessToken: string;
@@ -151,36 +154,42 @@ class ApiClient {
 
         if (typeof window !== 'undefined') {
             // Invoices - using user-scoped key
-            const invoices = getUserData<any[]>('pumpkin_invoices');
+            const invoices = getUserData<Invoice[]>('pumpkin_invoices');
             if (invoices && invoices.length > 0) {
                 try {
-                    const paidInvoices = invoices.filter((inv: any) => inv.status === 'paid');
-                    const revenue = paidInvoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0);
+                    const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
+                    const revenue = paidInvoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
                     totalRevenue = revenue;
-                } catch (e) {
+                } catch {
                     console.error('Failed to calculate revenue from local storage');
                 }
             }
 
             // Leads (Contacts) - using user-scoped key
-            const contacts = getUserData<any[]>('pumpkin_contacts');
+            const contacts = getUserData<Contact[]>('pumpkin_contacts');
             if (contacts) {
                 try {
                     // Assume all contacts are leads/inquiries for now, or filter by specific type if you had one
                     totalLeads = contacts.length;
-                } catch (e) {
+                } catch {
                     console.error('Failed to calculate leads from local storage');
                 }
             }
 
             // Appointments (Scheduling) - using user-scoped key
-            const appointments = getUserData<any[]>('pumpkin_appointments');
+            const appointments = getUserData<Appointment[]>('pumpkin_appointments');
             if (appointments) {
                 try {
-                    // Count future appointments
+                    // Count future appointments (assuming appointments are for today as they only have time)
                     const now = new Date();
-                    activeAppointments = appointments.filter((apt: any) => new Date(apt.date) >= now).length;
-                } catch (e) {
+                    activeAppointments = appointments.filter((apt) => {
+                        if (!apt.time) return false;
+                        const [hours, minutes] = apt.time.split(':').map(Number);
+                        const aptDate = new Date();
+                        aptDate.setHours(hours, minutes, 0, 0);
+                        return aptDate >= now;
+                    }).length;
+                } catch {
                     console.error('Failed to calculate appointments from local storage');
                 }
             }

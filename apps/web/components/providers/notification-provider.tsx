@@ -3,13 +3,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 
-export interface Appointment {
-    time: string;
-    title: string;
-    client: string;
-    duration: string;
-    avatar?: string;
-}
+import { Appointment } from "@/lib/types/appointment";
 
 export interface Notification {
     id: string;

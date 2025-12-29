@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/dashboard-shell';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { getUserData, setUserData } from '@/lib/storage-utils';
+import { getBillingDaysRemaining } from '@/lib/subscription-utils';
 
 interface CompanySettings {
     name: string;
@@ -83,6 +84,16 @@ export default function SettingsPage() {
     const [selectedTier, setSelectedTier] = useState<'free' | 'plus' | 'pro'>('free');
     const [isProcessing, setIsProcessing] = useState(false);
     const [paymentDetails, setPaymentDetails] = useState({ number: '', expiry: '', cvc: '', name: '' });
+    const [nextPaymentDate, setNextPaymentDate] = useState<string>('N/A');
+
+    // --- Effects ---
+    // Calculate next payment date on mount
+    useEffect(() => {
+        const days = getBillingDaysRemaining();
+        const date = new Date();
+        date.setDate(date.getDate() + days);
+        setNextPaymentDate(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+    }, []);
 
     // --- Handlers ---
     const handleSaveCompany = () => { setUserData('pumpkin_company_settings', company); toast('Company settings saved!', 'success'); };
@@ -142,7 +153,37 @@ export default function SettingsPage() {
         }
     };
 
+    const validatePaymentDetails = () => {
+        const { number, expiry, cvc, name } = paymentDetails;
+        if (!number || !expiry || !cvc || !name) {
+            toast('Please fill in all payment details.', 'error');
+            return false;
+        }
+
+        // Basic validation (mock)
+        const cleanNumber = number.replace(/\s/g, '');
+        if (cleanNumber.length < 16 || isNaN(Number(cleanNumber))) {
+            toast('Invalid card number.', 'error');
+            return false;
+        }
+
+        const expiryRegex = /^(0[1-9]|1[0-2])\/?([0-9]{2})$/;
+        if (!expiryRegex.test(expiry)) {
+            toast('Invalid expiry date (MM/YY).', 'error');
+            return false;
+        }
+
+        if (cvc.length < 3 || cvc.length > 4 || isNaN(Number(cvc))) {
+            toast('Invalid CVC.', 'error');
+            return false;
+        }
+
+        return true;
+    };
+
     const processPayment = async () => {
+        if (selectedTier !== 'free' && !validatePaymentDetails()) return;
+
         setIsProcessing(true);
         // Simulate Stripe delay
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -225,7 +266,7 @@ export default function SettingsPage() {
                         <Card className="bg-black/20 border-white/5 rounded-2xl shadow-xl backdrop-blur-xl">
                             <CardHeader><CardTitle className="text-white font-heading uppercase tracking-widest text-sm">Billing & Plan</CardTitle><CardDescription className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Manage your subscription.</CardDescription></CardHeader>
                             <CardContent className="space-y-6">
-                                <div className={`p-8 border rounded-2xl flex items-center justify-between ${plan !== 'free' ? 'bg-primary/10 border-primary/20' : 'bg-white/5 border-white/10'}`}>
+                                <div className={`p-6 md:p-8 border rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-0 ${plan !== 'free' ? 'bg-primary/10 border-primary/20' : 'bg-white/5 border-white/10'}`}>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-3">
                                             <p className="font-heading font-bold text-white uppercase tracking-widest text-lg">
@@ -239,12 +280,12 @@ export default function SettingsPage() {
                                             {plan === 'pro' ? '$29/mo • Unlimited • Full Power' : plan === 'plus' ? '$12/mo • 10 Projects • Growing' : 'Free forever • Up to 3 clients'}
                                         </p>
                                     </div>
-                                    <Button onClick={openUpgradeModal} className={`h-12 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] ${plan !== 'free' ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}>
+                                    <Button onClick={openUpgradeModal} className={`h-12 w-full md:w-auto px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] ${plan !== 'free' ? 'bg-zinc-800 hover:bg-zinc-700' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}>
                                         {plan !== 'free' ? 'Manage Subscription' : 'Upgrade Plan'}
                                     </Button>
                                 </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment: {plan !== 'free' ? 'Oct 1, 2025' : 'N/A'}</div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Next Payment: {plan !== 'free' ? nextPaymentDate : 'N/A'}</div>
                                     <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Payment Method: {plan !== 'free' ? 'Visa •••• 4242' : 'None'}</div>
                                     <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Billing Email: {company.email || 'N/A'}</div>
                                 </div>
@@ -301,8 +342,8 @@ export default function SettingsPage() {
 
             {/* --- UPGRADE MODAL --- */}
             <Dialog open={isUpgradeOpen} onOpenChange={setIsUpgradeOpen}>
-                <DialogContent className="max-w-4xl bg-[#051c1c] border-white/10 text-white p-0 overflow-hidden rounded-3xl">
-                    <DialogHeader className="p-8 pb-4">
+                <DialogContent className="w-[95%] max-w-4xl max-h-[90vh] overflow-y-auto bg-[#051c1c] border-white/10 text-white p-0 rounded-2xl md:rounded-3xl">
+                    <DialogHeader className="p-4 md:p-8 pb-4">
                         <DialogTitle className="text-xl font-heading uppercase tracking-widest text-start flex items-center gap-2">
                             {plan === 'free' ? 'Upgrade Plan' : 'Manage Subscription'}
                         </DialogTitle>
@@ -312,18 +353,18 @@ export default function SettingsPage() {
                     </DialogHeader>
 
                     {paymentStep === 'select' ? (
-                        <div className="p-8 pt-0 grid md:grid-cols-3 gap-4">
+                        <div className="p-4 md:p-8 pt-0 grid md:grid-cols-3 gap-4">
                             {/* SEEDLING */}
                             <div
-                                className={`cursor-pointer rounded-2xl border-2 p-6 transition-all ${selectedTier === 'free' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                                className={`cursor-pointer rounded-2xl border-2 p-4 md:p-6 transition-all ${selectedTier === 'free' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                                 onClick={() => handlePlanSelect('free')}
                             >
-                                <div className="text-3xl mb-4">🌱</div>
+                                <div className="text-2xl md:text-3xl mb-3 md:mb-4">🌱</div>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-heading uppercase tracking-widest text-sm text-white">Seedling</span>
                                     {selectedTier === 'free' && <Check className="h-5 w-5 text-primary" />}
                                 </div>
-                                <div className="text-2xl font-bold mb-4">$0 <span className="text-sm font-normal text-zinc-500">/mo</span></div>
+                                <div className="text-xl md:text-2xl font-bold mb-4">$0 <span className="text-sm font-normal text-zinc-500">/mo</span></div>
                                 <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                     <li className="flex items-center gap-2"><Check className="h-3 w-3" /> 3 Projects</li>
                                     <li className="flex items-center gap-2"><Check className="h-3 w-3" /> Basic CRM</li>
@@ -332,15 +373,15 @@ export default function SettingsPage() {
 
                             {/* SPROUT */}
                             <div
-                                className={`cursor-pointer rounded-2xl border-2 p-6 transition-all ${selectedTier === 'plus' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                                className={`cursor-pointer rounded-2xl border-2 p-4 md:p-6 transition-all ${selectedTier === 'plus' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                                 onClick={() => handlePlanSelect('plus')} // Mapping Sprout to 'plus'
                             >
-                                <div className="text-3xl mb-4">🌿</div>
+                                <div className="text-2xl md:text-3xl mb-3 md:mb-4">🌿</div>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-heading uppercase tracking-widest text-sm text-white">Sprout</span>
                                     {selectedTier === 'plus' && <Check className="h-5 w-5 text-primary" />}
                                 </div>
-                                <div className="text-2xl font-bold mb-4 text-white">$12 <span className="text-sm font-normal text-zinc-500">/mo</span></div>
+                                <div className="text-xl md:text-2xl font-bold mb-4 text-white">$12 <span className="text-sm font-normal text-zinc-500">/mo</span></div>
                                 <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                     <li className="flex items-center gap-2"><Check className="h-3 w-3 text-white" /> 10 Projects</li>
                                     <li className="flex items-center gap-2"><Check className="h-3 w-3 text-white" /> Advanced CRM</li>
@@ -349,16 +390,16 @@ export default function SettingsPage() {
 
                             {/* BIG PUMPKIN */}
                             <div
-                                className={`cursor-pointer rounded-2xl border-2 p-6 transition-all ${selectedTier === 'pro' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
+                                className={`cursor-pointer rounded-2xl border-2 p-4 md:p-6 transition-all ${selectedTier === 'pro' ? 'border-primary bg-primary/10' : 'border-white/5 bg-white/5 hover:bg-white/10'}`}
                                 onClick={() => handlePlanSelect('pro')} // Mapping Big Pumpkin to 'pro'
                             >
                                 <div className="absolute top-4 right-4 text-[10px] bg-primary text-primary-foreground font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">Best</div>
-                                <div className="text-3xl mb-4">🔥</div>
+                                <div className="text-2xl md:text-3xl mb-3 md:mb-4">🔥</div>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-heading uppercase tracking-widest text-sm text-white">Big Pumpkin</span>
                                     {selectedTier === 'pro' && <Check className="h-5 w-5 text-primary" />}
                                 </div>
-                                <div className="text-2xl font-bold mb-4 text-primary">$29 <span className="text-sm font-normal text-primary/60">/mo</span></div>
+                                <div className="text-xl md:text-2xl font-bold mb-4 text-primary">$29 <span className="text-sm font-normal text-primary/60">/mo</span></div>
                                 <ul className="space-y-3 text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                                     <li className="flex items-center gap-2 text-white"><Check className="h-3 w-3 text-primary" /> Unlimited Projects</li>
                                     <li className="flex items-center gap-2 text-white"><Check className="h-3 w-3 text-primary" /> Full Automation</li>
@@ -367,7 +408,7 @@ export default function SettingsPage() {
                             </div>
                         </div>
                     ) : (
-                        <div className="p-8 pt-0 space-y-6">
+                        <div className="p-4 md:p-8 pt-0 space-y-6">
                             <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
                                 <div>
                                     <p className="font-bold text-white uppercase tracking-widest text-xs">
@@ -428,7 +469,7 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    <DialogFooter className="p-8 border-t border-white/5 bg-white/[0.02]">
+                    <DialogFooter className="p-4 md:p-8 border-t border-white/5 bg-white/[0.02]">
                         {paymentStep === 'payment' && (
                             <Button variant="ghost" onClick={() => setPaymentStep('select')} disabled={isProcessing} className="mr-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/5">
                                 Back
