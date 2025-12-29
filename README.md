@@ -34,7 +34,7 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 
 ## Project Structure
 
-```
+```text
 pumpkin/
 ├── apps/
 │   ├── web/          # Next.js frontend application
@@ -141,7 +141,7 @@ Follow these steps to set up the project locally for development.
 
 ## Development Workflow
 
-### Project Structure
+### Workspace Overview
 
 This is a monorepo managed with **Turborepo** and **npm workspaces**.
 
@@ -197,6 +197,54 @@ npm run migration:run
 # Revert the last migration
 npm run migration:revert
 ```
+
+## Deployment
+
+### Deploying to Vercel
+
+This project is optimized for deployment on **Vercel** using **Turborepo**.
+
+#### 1. Setup Vercel Project
+
+- Connect your GitHub repository to Vercel.
+- Vercel will detect the Turborepo monorepo automatically.
+
+#### 2. Configure Web App (Frontend)
+
+For the frontend application (`apps/web`):
+
+- **Root Directory**: `apps/web` (or `.` if using Turborepo integration)
+- **Build Command**: `cd ../.. && npx turbo run build --filter=web`
+- **Output Directory**: `.next`
+- **Install Command**: `cd ../.. && npm install`
+
+> [!TIP]
+> Alternatively, keep the **Root Directory** as `.` and set the **Build Command** to `npx turbo run build --filter=web` and **Output Directory** to `apps/web/.next`.
+
+#### 3. Environment Variables
+
+Ensure the following environment variables are set in the Vercel Dashboard:
+
+| Variable | Description |
+| :--- | :--- |
+| `NEXT_PUBLIC_API_URL` | The production URL of your NestJS API (e.g., `https://api.yourdomain.com/api`) |
+| `DATABASE_URL` | Production PostgreSQL connection string (if using Vercel Postgres or external DB) |
+| `NEXTAUTH_SECRET` | Secret for authentication |
+
+#### 4. Deploying the API (Backend)
+
+While Next.js is hosted on Vercel, it is recommended to host the **NestJS API** on a platform that supports persistent processes or specialized serverless runners:
+
+- **Options**: [Railway](https://railway.app), [Render](https://render.com), [Fly.io](https://fly.io), or [AWS App Runner](https://aws.amazon.com/apprunner/).
+- **Build Command**: `npm run build --workspace=api`
+- **Start Command**: `npm run start:prod --workspace=api`
+
+### Production Checklist
+
+- [ ] Set `NODE_ENV` to `production`.
+- [ ] Configure production database migrations.
+- [ ] Ensure all API endpoints used by the frontend point to the production API URL.
+- [ ] Set up Stripe production keys if applicable.
 
 ## Troubleshooting
 
