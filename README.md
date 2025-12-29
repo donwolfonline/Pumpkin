@@ -209,16 +209,19 @@ This project is optimized for deployment on **Vercel** using **Turborepo**.
 #### 1. Setup Vercel Project
 
 - Connect your GitHub repository to Vercel.
-- **Root Directory**: Keep this as the **Project Root** (`.`).
+- Vercel will automatically detect the **Turborepo** structure.
 
-#### 2. Configure Vercel Settings
+#### 2. Configure Settings
 
-Vercel will now detect the framework as **Next.js** (because `next` is now defined in the root `package.json`).
+In the Vercel Dashboard, ensure these settings are selected (usually defaults):
 
-- **Framework Preset**: `Next.js`
-- **Build Command**: `npx turbo run build --filter=web`
-- **Output Directory**: `apps/web/.next`
-- **Install Command**: `npm install`
+- **Framework Preset**: `Turborepo` or `Next.js`
+- **Root Directory**: `.` (The project root)
+- **Build Command**: `npx turbo run build`
+- **Output Directory**: `apps/web/.next` (You may need to override this in the 'Build & Development' settings)
+
+> [!TIP]
+> For the most reliable deployment, set the **Root Directory** to `.` and Vercel will handle the installation and build for all workspaces.
 
 #### 3. Environment Variables
 
