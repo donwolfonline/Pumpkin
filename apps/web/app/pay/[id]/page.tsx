@@ -302,6 +302,7 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
                                 onClick={async () => {
                                     if (!invoice) return;
                                     try {
+                                        await new Promise(resolve => setTimeout(resolve, 300));
                                         await generatePDF('signed-invoice-download', `invoice-${invoice.invoiceNumber}.pdf`);
                                         toast("Invoice downloaded successfully", "success");
                                     } catch (error) {
@@ -316,8 +317,8 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
                             </Button>
                         </div>
 
-                        {/* Hidden invoice template for download */}
-                        <div className="hidden">
+                        {/* Off-screen invoice template for download (html-to-image needs it to be non-hidden) */}
+                        <div className="absolute left-[-9999px] top-0 pointer-events-none origin-top-left">
                             <div id="signed-invoice-download" className="bg-white">
                                 <InvoiceTemplate invoice={invoice} branding={branding} />
                             </div>
