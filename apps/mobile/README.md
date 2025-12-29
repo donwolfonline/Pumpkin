@@ -41,3 +41,20 @@ A native mobile companion for the Pumpkin freelancer platform, built with Flutte
 - **Networking**: `Dio`
 - **Storage**: `flutter_secure_storage`
 - **UI Components**: `Google Fonts` & `Lucide-style` icons
+
+## Testing on Physical Device (iOS)
+
+To run the Pumpkin app on your physical iPhone:
+
+1. **Xcode Setup**:
+   - Open `ios/Runner.xcworkspace` in Xcode.
+   - Select the **Runner** project and target.
+   - In **Signing & Capabilities**, select your Development Team and ensure a unique Bundle Identifier.
+2. **Network (Critical)**:
+   - Your iPhone and Mac must be on the same Wi-Fi.
+   - Find your Mac's local IP (e.g., `ipconfig getifaddr en0`).
+   - Update `baseUrl` in `lib/core/api_client.dart` to `http://YOUR_MAC_IP:4000/api`.
+3. **Run**:
+   - Connect iPhone via USB.
+   - Run `flutter run` and select your device.
+   - **Trust the App**: On iPhone, go to Settings > General > VPN & Device Management and trust your Apple ID.
