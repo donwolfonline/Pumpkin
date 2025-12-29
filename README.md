@@ -1,5 +1,8 @@
 # Pumpkin 🎃
 
+<img width="1430" height="662" alt="Screenshot 2025-12-30 at 1 15 26 AM" src="https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90" />
+
+
 A production-ready, multi-tenant SaaS platform for freelancers and service-based businesses.
 
 ## Features
