@@ -318,7 +318,10 @@ export default function SettingsPage() {
                                 ].map((item) => (
                                     <div key={item.id} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
                                         <p className="text-xs font-bold text-white uppercase tracking-widest">{item.label}</p>
-                                        <Switch checked={!!(notifications as any)[item.id]} onCheckedChange={(checked: boolean) => setNotifications({ ...notifications, [item.id]: checked })} />
+                                        <Switch
+                                            checked={notifications[item.id as keyof NotificationSettings]}
+                                            onCheckedChange={(checked: boolean) => setNotifications({ ...notifications, [item.id]: checked })}
+                                        />
                                     </div>
                                 ))}
                             </CardContent>
