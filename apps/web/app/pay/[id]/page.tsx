@@ -317,9 +317,8 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
                             </Button>
                         </div>
 
-                        {/* Off-screen invoice template for download (html-to-image needs it to be non-hidden) */}
                         <div className="absolute left-[-9999px] top-0 pointer-events-none origin-top-left">
-                            <div id="signed-invoice-download" className="bg-white">
+                            <div id="signed-invoice-download" className="bg-white w-[800px]">
                                 <InvoiceTemplate invoice={invoice} branding={branding} />
                             </div>
                         </div>

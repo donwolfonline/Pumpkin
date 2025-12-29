@@ -267,7 +267,7 @@ export default function SignProposalPage({ params }: { params: Promise<{ id: str
                 {/* Hidden Template for PDF Generation */}
                 {proposal && branding && (
                     <div className="fixed left-[-9999px] top-0">
-                        <div id="signed-proposal-download">
+                        <div id="signed-proposal-download" className="w-[800px] bg-white">
                             <ProposalTemplate
                                 proposal={proposal}
                                 branding={branding}
