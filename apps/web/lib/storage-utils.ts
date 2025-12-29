@@ -53,7 +53,7 @@ export function getUserData<T>(key: string): T | null {
 
             // SECURITY/CLEANUP: Filter out known mock data ("Michael Duo" / "INV-6413")
             if (key === STORAGE_KEYS.INVOICES && Array.isArray(parsed)) {
-                const cleaned = (parsed as any[]).filter(inv =>
+                const cleaned = (parsed as Invoice[]).filter(inv =>
                     inv.clientName !== 'Michael Duo' && inv.invoiceNumber !== 'INV-6413'
                 );
 
@@ -68,6 +68,11 @@ export function getUserData<T>(key: string): T | null {
 
             // Migrate guest data to user-scoped storage
             setUserData(key, parsed);
+
+            // CLEANUP: Remove guest data to prevent duplicates and stale lookups
+            localStorage.removeItem(guestKey);
+            console.log(`Successfully migrated and cleaned up guest data for ${key}`);
+
             return parsed;
         } catch {
             // Fall through
@@ -81,6 +86,11 @@ export function getUserData<T>(key: string): T | null {
             const parsed = JSON.parse(legacyData) as T;
             // Migrate to user-scoped storage automatically
             setUserData(key, parsed);
+
+            // CLEANUP: Remove legacy data
+            localStorage.removeItem(key);
+            console.log(`Successfully migrated and cleaned up legacy data for ${key}`);
+
             return parsed;
         } catch {
             return null;
@@ -250,18 +260,28 @@ export const setContracts = (contracts: Contract[]): void => {
 export function getContractPublicly(id: string): { contract: Contract; storageKey: string } | null {
     if (typeof window === 'undefined') return null;
 
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && /_pumpkin_contracts/.test(key)) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const contracts = JSON.parse(data) as (Contract & { id: string })[];
-                    const found = contracts.find(c => c.id === id);
-                    if (found) return { contract: found as Contract, storageKey: key };
-                } catch {
-                    continue;
-                }
+        const k = localStorage.key(i);
+        if (k && /_pumpkin_contracts/.test(k)) keys.push(k);
+    }
+
+    // Prioritize user-scoped keys over guest keys
+    keys.sort((a, b) => {
+        if (a.startsWith('guest_') && !b.startsWith('guest_')) return 1;
+        if (!a.startsWith('guest_') && b.startsWith('guest_')) return -1;
+        return 0;
+    });
+
+    for (const key of keys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            try {
+                const contracts = JSON.parse(data) as (Contract & { id: string })[];
+                const found = contracts.find(c => c.id === id);
+                if (found) return { contract: found as Contract, storageKey: key };
+            } catch {
+                continue;
             }
         }
     }
@@ -292,18 +312,28 @@ export function updateContractByKey(key: string, updatedContract: Contract): voi
 export function getProposalPublicly(id: string): { proposal: Proposal; storageKey: string } | null {
     if (typeof window === 'undefined') return null;
 
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && /_pumpkin_proposals/.test(key)) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const proposals = JSON.parse(data) as (Proposal & { id: string })[];
-                    const found = proposals.find(p => p.id === id);
-                    if (found) return { proposal: found as Proposal, storageKey: key };
-                } catch {
-                    continue;
-                }
+        const k = localStorage.key(i);
+        if (k && /_pumpkin_proposals/.test(k)) keys.push(k);
+    }
+
+    // Prioritize user-scoped keys over guest keys
+    keys.sort((a, b) => {
+        if (a.startsWith('guest_') && !b.startsWith('guest_')) return 1;
+        if (!a.startsWith('guest_') && b.startsWith('guest_')) return -1;
+        return 0;
+    });
+
+    for (const key of keys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            try {
+                const proposals = JSON.parse(data) as (Proposal & { id: string })[];
+                const found = proposals.find(p => p.id === id);
+                if (found) return { proposal: found as Proposal, storageKey: key };
+            } catch {
+                continue;
             }
         }
     }
@@ -334,18 +364,28 @@ export function updateProposalByKey(key: string, updatedProposal: Proposal): voi
 export function getInvoicePublicly(id: string): { invoice: Invoice; storageKey: string } | null {
     if (typeof window === 'undefined') return null;
 
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && /_pumpkin_invoices/.test(key)) {
-            const data = localStorage.getItem(key);
-            if (data) {
-                try {
-                    const invoices = JSON.parse(data) as (Invoice & { id: string })[];
-                    const found = invoices.find(inv => inv.id === id);
-                    if (found) return { invoice: found as Invoice, storageKey: key };
-                } catch {
-                    continue;
-                }
+        const k = localStorage.key(i);
+        if (k && /_pumpkin_invoices/.test(k)) keys.push(k);
+    }
+
+    // Prioritize user-scoped keys over guest keys
+    keys.sort((a, b) => {
+        if (a.startsWith('guest_') && !b.startsWith('guest_')) return 1;
+        if (!a.startsWith('guest_') && b.startsWith('guest_')) return -1;
+        return 0;
+    });
+
+    for (const key of keys) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            try {
+                const invoices = JSON.parse(data) as (Invoice & { id: string })[];
+                const found = invoices.find(inv => inv.id === id);
+                if (found) return { invoice: found as Invoice, storageKey: key };
+            } catch {
+                continue;
             }
         }
     }

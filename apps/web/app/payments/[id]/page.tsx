@@ -140,7 +140,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 clientEmail: invoice.clientEmail,
                 total: invoice.total,
                 subtotal: invoice.subtotal,
-                taxRate: invoice.taxRate || 10,
+                taxRate: invoice.taxRate ?? 0,
                 dueDate: invoice.dueDate,
                 items: invoice.items,
             });
@@ -152,7 +152,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         e.preventDefault();
         if (!invoice) return;
 
-        const currentTaxRate = editForm.taxRate !== undefined ? editForm.taxRate : (invoice.taxRate || 10);
+        const currentTaxRate = editForm.taxRate !== undefined ? editForm.taxRate : (invoice.taxRate ?? 0);
         const subtotal = editForm.subtotal !== undefined ? editForm.subtotal : invoice.subtotal;
         const tax = subtotal * (currentTaxRate / 100);
         const total = subtotal + tax;

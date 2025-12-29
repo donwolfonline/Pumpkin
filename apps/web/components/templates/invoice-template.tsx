@@ -125,7 +125,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, brand
                             <span className="text-zinc-900">{formatCurrency(invoice.subtotal)}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm font-bold text-zinc-500">
-                            <span className="uppercase tracking-widest">Tax ({invoice.taxRate || 10}%)</span>
+                            <span className="uppercase tracking-widest">Tax ({invoice.taxRate ?? 0}%)</span>
                             <span className="text-zinc-900">{formatCurrency(invoice.tax)}</span>
                         </div>
                         <div className="flex justify-between items-center bg-[#ea580c] text-white p-4 rounded-full mt-2">
