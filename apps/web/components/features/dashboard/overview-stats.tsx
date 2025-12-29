@@ -1,48 +1,52 @@
 import { MetricCard } from '@/components/shared/metric-card';
-import { DollarSign, Users, Briefcase, FileText } from 'lucide-react';
+import { DollarSign, Briefcase, FileText, FileSignature } from 'lucide-react';
 
 interface OverviewStatsProps {
     data?: {
         totalRevenue: number;
         totalLeads: number;
+        revenueChange?: number;
         activeAppointments: number;
+        harvestEfficiency?: number;
+        totalSignedContracts?: number;
+        activeProjects?: number;
     };
     isLoading?: boolean;
 }
 
-export function OverviewStats({ data, isLoading }: OverviewStatsProps) {
+export function OverviewStats({ data }: OverviewStatsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <MetricCard
                 title="Total Revenue"
                 value={data?.totalRevenue ?? 0}
                 format="currency"
-                change={0}
+                change={data?.revenueChange ?? 0}
                 changeLabel="from last month"
-                trend="neutral"
+                trend={data?.revenueChange && data.revenueChange >= 0 ? "up" : "down"}
                 icon={<DollarSign className="h-4 w-4" />}
             />
             <MetricCard
-                title="Inquiries (Leads)"
-                value={data?.totalLeads ?? 0}
+                title="Signed Contracts"
+                value={data?.totalSignedContracts ?? 0}
                 change={0}
-                changeLabel="new leads"
+                changeLabel="active contracts"
                 trend="neutral"
-                icon={<Users className="h-4 w-4" />}
+                icon={<FileSignature className="h-4 w-4" />}
             />
             <MetricCard
-                title="Scheduled"
-                value={data?.activeAppointments ?? 0}
+                title="Active Projects"
+                value={data?.activeProjects ?? 0}
                 change={0}
-                changeLabel="this week"
+                changeLabel="in progress"
                 trend="neutral"
                 icon={<Briefcase className="h-4 w-4" />}
             />
             <MetricCard
-                title="Pending Invoices"
-                value={0}
+                title="Harvest Efficiency"
+                value={`${data?.harvestEfficiency ?? 0}%`}
                 change={0}
-                changeLabel="needing attention"
+                changeLabel="collection rate"
                 trend="neutral"
                 icon={<FileText className="h-4 w-4" />}
             />

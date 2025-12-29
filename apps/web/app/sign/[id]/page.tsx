@@ -144,12 +144,17 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
                             </p>
                         </div>
 
-                        <div className="w-full flex-1 overflow-x-hidden pb-12">
-                            <div className="relative group perspective-1000 origin-top">
+                        <div className="w-full flex-1 pb-24 flex justify-center">
+                            <div className="relative group perspective-1000 origin-top flex justify-center w-full max-w-full overflow-hidden px-4">
                                 {/* Decorative elements behind document */}
-                                <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 via-orange-500/20 to-transparent rounded-[2.5rem] blur-2xl group-hover:blur-3xl transition-all duration-700"></div>
-                                <div className="relative overflow-hidden rounded-[2rem] border border-white/5 shadow-2xl">
-                                    <ContractTemplate contract={contract} branding={branding} />
+                                <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 via-orange-500/20 to-transparent rounded-[2.5rem] blur-2xl group-hover:blur-3xl transition-all duration-700 opacity-50"></div>
+
+                                <div className="relative w-[300px] h-[412px] sm:w-[480px] sm:h-[660px] md:w-[600px] md:h-[825px] lg:w-[800px] lg:h-[1100px] shrink-0 transition-all duration-500">
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] transform scale-[0.375] sm:scale-[0.6] md:scale-[0.75] lg:scale-100 origin-top transition-transform duration-500">
+                                        <div className="relative overflow-hidden rounded-[2rem] border border-white/5 shadow-2xl bg-white">
+                                            <ContractTemplate contract={contract} branding={branding} />
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

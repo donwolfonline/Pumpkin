@@ -3,7 +3,7 @@ import type { OrganizationBranding } from './types/organization-settings';
 import { DEFAULT_BRANDING } from './types/organization-settings';
 import type { Invoice } from './types/invoice';
 import type { Contract } from './types/contract';
-import type { Proposal } from '@/lib/types/proposal';
+import type { Proposal } from './types/proposal';
 import type { Contact } from './types/crm';
 
 /**
@@ -130,7 +130,19 @@ const STORAGE_KEYS = {
     PROPOSALS: 'pumpkin_proposals',
     CONTRACTS: 'pumpkin_contracts',
     CONTACTS: 'pumpkin_contacts',
+    PROJECTS: 'pumpkin_projects',
 } as const;
+
+import type { Project } from './types/project';
+
+// Project helpers
+export const getProjects = (): Project[] => {
+    return getUserData<Project[]>(STORAGE_KEYS.PROJECTS) || [];
+};
+
+export const setProjects = (projects: Project[]): void => {
+    setUserData(STORAGE_KEYS.PROJECTS, projects);
+};
 
 // Organization/Branding helpers
 export const getOrganizationBranding = (): OrganizationBranding => {
@@ -268,6 +280,48 @@ export function updateProposalByKey(key: string, updatedProposal: Proposal): voi
             localStorage.setItem(key, JSON.stringify(updated));
         } catch (e) {
             console.error('Failed to update proposal by key', e);
+        }
+    }
+}
+
+/**
+ * Searches all localStorage for a specific invoice ID.
+ * This is used for guest access via public sharing links.
+ */
+export function getInvoicePublicly(id: string): { invoice: Invoice; storageKey: string } | null {
+    if (typeof window === 'undefined') return null;
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && /_pumpkin_invoices/.test(key)) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const invoices = JSON.parse(data) as (Invoice & { id: string })[];
+                    const found = invoices.find(inv => inv.id === id);
+                    if (found) return { invoice: found as Invoice, storageKey: key };
+                } catch {
+                    continue;
+                }
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Updates an invoice in a specific localStorage key.
+ */
+export function updateInvoiceByKey(key: string, updatedInvoice: Invoice): void {
+    if (typeof window === 'undefined') return;
+    const data = localStorage.getItem(key);
+    if (data) {
+        try {
+            const invoices = JSON.parse(data) as (Invoice & { id: string })[];
+            const updated = invoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
+            localStorage.setItem(key, JSON.stringify(updated));
+        } catch (e) {
+            console.error('Failed to update invoice by key', e);
         }
     }
 }

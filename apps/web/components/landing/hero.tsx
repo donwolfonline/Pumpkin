@@ -47,9 +47,11 @@ export function Hero() {
                                 🎃 Start Free Now
                             </Button>
                         </Link>
-                        <Button size="lg" variant="ghost" className="h-16 px-10 text-xl font-bold rounded-full bg-[#0a2c28] text-white border border-white/10 hover:bg-[#0f403c]">
-                            ▶ See How It Works
-                        </Button>
+                        <Link href="#how-it-works">
+                            <Button size="lg" variant="ghost" className="h-16 px-10 text-xl font-bold rounded-full bg-[#0a2c28] text-white border border-white/10 hover:bg-[#0f403c]">
+                                ▶ See How It Works
+                            </Button>
+                        </Link>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-center gap-8 text-sm font-bold text-zinc-400">

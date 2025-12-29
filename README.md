@@ -4,19 +4,17 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 
 ## Features
 
+- **Product Showroom** - Detailed deep-dives into CRM, Contracts, Invoicing, Proposals, and Analytics
+- **Industry Use Cases** - Tailored solutions for Creatives, Developers, Agencies, and Consultants
+- **Resource Hub** - Curated guides, templates, and business tools for solo professionals
+- **How It Works** - Interactive 4-step workflow visualization (Onboard, Propose, Execute, Collect)
 - **CRM** - Manage contacts, leads, and deals with a mobile-friendly interface
-- **Proposals & Contracts** - Create and send professional documents with dynamic templates
+- **Proposals & Contracts** - Create and send professional documents with dynamic templates and dual-signatures
 - **Scheduling** - Integrated calendar and appointment management
-- **Payments & Billing** - Multi-tiered subscription plans (Seedling, Sprout, Big Pumpkin), invoicing, and PDF export
-- **Registration Flow** - Integrated signup and secure mock checkout for subscription management
-- **Communication** - Email templates and client messaging
-- **Automation** - Workflow automation engine
-- **Analytics** - Real-time business insights and reporting
+- **Payments & Billing** - Multi-tiered subscription plans, invoicing, and instant settlements
+- **Security & Status** - Real-time system monitoring and bank-grade data encryption
 - **Mobile Optimized** - Fully responsive design with native-feeling mobile navigation
-- **Appointment Management** - Schedule with clients, delete appointments, and get notified
 - **Smart Notifications** - Integrated header notifications with a creative popup system
-- **Document Vault** - Secure storage for business documents with PDF generation
-- **Settings & Preferences** - Comprehensive control over company profile, team members, notifications, and security
 
 ## Tech Stack
 

@@ -2,7 +2,7 @@ import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/landing/hero";
 import { Problem } from "@/components/landing/problem";
 import { Solution } from "@/components/landing/solution";
-import { Features } from "@/components/landing/features";
+import { HowItWorks } from "@/components/landing/how-it-works";
 import { PumpkinLineup } from "@/components/landing/pumpkin-lineup";
 import { MobileShowcase } from "@/components/landing/mobile-showcase";
 import { UseCases } from "@/components/landing/use-cases";
@@ -11,7 +11,6 @@ import { Trust } from "@/components/landing/trust";
 import { Testimonials } from "@/components/landing/testimonials";
 import { Pricing } from "@/components/landing/pricing";
 import { Download } from "@/components/landing/download";
-import { CTA } from "@/components/landing/cta";
 import { Footer } from "@/components/layout/footer";
 
 export default function Home() {
@@ -22,7 +21,7 @@ export default function Home() {
         <Hero />
         <Problem />
         <Solution />
-        <Features />
+        <HowItWorks />
         <PumpkinLineup />
         <MobileShowcase />
         <UseCases />
@@ -31,7 +30,6 @@ export default function Home() {
         <Testimonials />
         <Pricing />
         <Download />
-        <CTA />
       </main>
       <Footer />
     </div>

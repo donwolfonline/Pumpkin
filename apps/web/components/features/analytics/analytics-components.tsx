@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 import { MetricCard } from '@/components/shared/metric-card';
-import { DollarSign, TrendingUp, Users, Activity, BarChart3, PieChartIcon } from 'lucide-react';
+import { DollarSign, Activity, BarChart3, PieChartIcon, FileSignature, Briefcase } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 
 const COLORS = ['#f97316', '#f59e0b', '#10b981', '#3b82f6'];
@@ -13,6 +13,10 @@ interface AnalyticsStatsProps {
         totalRevenue: number;
         totalLeads: number;
         activeAppointments: number;
+        harvestEfficiency?: number;
+        revenueChange?: number;
+        totalSignedContracts?: number;
+        activeProjects?: number;
     };
     isLoading?: boolean;
 }
@@ -24,27 +28,27 @@ export function AnalyticsStats({ data }: AnalyticsStatsProps) {
                 title="Total Revenue"
                 value={data?.totalRevenue ?? 0}
                 format="currency"
-                change={0}
-                trend="neutral"
+                change={data?.revenueChange ?? 0}
+                trend={data?.revenueChange && data.revenueChange >= 0 ? "up" : "down"}
                 icon={<DollarSign className="h-4 w-4" />}
             />
             <MetricCard
-                title="Total Leads"
-                value={data?.totalLeads ?? 0}
+                title="Signed Contracts"
+                value={data?.totalSignedContracts ?? 0}
                 change={0}
                 trend="neutral"
-                icon={<TrendingUp className="h-4 w-4" />}
+                icon={<FileSignature className="h-4 w-4" />}
             />
             <MetricCard
-                title="Active Appointments"
-                value={data?.activeAppointments ?? 0}
+                title="Active Projects"
+                value={data?.activeProjects ?? 0}
                 change={0}
                 trend="neutral"
-                icon={<Users className="h-4 w-4" />}
+                icon={<Briefcase className="h-4 w-4" />}
             />
             <MetricCard
                 title="Harvest Efficiency"
-                value="0%"
+                value={`${data?.harvestEfficiency ?? 0}%`}
                 change={0}
                 trend="neutral"
                 icon={<Activity className="h-4 w-4" />}
@@ -58,6 +62,7 @@ interface ChartData {
     value: number;
     revenue?: number;
     expenses?: number;
+    [key: string]: string | number | undefined;
 }
 
 interface ChartProps {

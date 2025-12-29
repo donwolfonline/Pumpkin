@@ -1,8 +1,8 @@
 import React from 'react';
-import { Invoice } from '@/lib/types/invoice';
+import { Invoice, InvoiceItem } from '../../lib/types/invoice';
 import Image from 'next/image';
-import { OrganizationBranding } from '@/lib/types/organization-settings';
-import { formatCurrency } from '@/lib/utils';
+import { OrganizationBranding } from '../../lib/types/organization-settings';
+import { formatCurrency } from '../../lib/utils';
 
 interface InvoiceTemplateProps {
     invoice: Invoice;
@@ -48,10 +48,22 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, brand
             <div className="mt-32 h-16 relative">
                 <div className="absolute top-0 right-0 w-2/3 h-10 bg-white" style={{ clipPath: 'polygon(10% 0, 100% 0, 100% 100%, 0% 100%)' }}></div>
                 <div className="absolute top-0 right-0 w-[64%] h-1 bg-[#ea580c] mt-2"></div>
-                <div className="absolute top-0 left-0 w-full flex justify-end pr-12 pt-4">
-                    <h2 className="text-4xl font-black text-[#ea580c] uppercase tracking-tighter">Invoice</h2>
+                <div className="absolute top-0 left-0 w-full flex justify-between items-center px-12 pt-4">
+                    {invoice.status === 'paid' && (
+                        <div className="bg-green-600 text-white px-6 py-1 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-lg animate-in zoom-in duration-500">
+                            Payment Received • Paid
+                        </div>
+                    )}
+                    <h2 className="text-4xl font-black text-[#ea580c] uppercase tracking-tighter ml-auto">Invoice</h2>
                 </div>
             </div>
+
+            {/* Paid Watermark */}
+            {invoice.status === 'paid' && (
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-35deg] pointer-events-none opacity-[0.03] select-none z-0">
+                    <p className="text-[200px] font-black uppercase tracking-[0.1em]">PAID</p>
+                </div>
+            )}
 
             {/* Info Section */}
             <div className="mt-12 grid grid-cols-2 gap-12 px-4">
@@ -59,9 +71,9 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, brand
                     <h3 className="text-sm font-black text-[#ea580c] uppercase tracking-widest mb-4">Invoice To :</h3>
                     <p className="font-black text-xl mb-2">{invoice.clientName}</p>
                     <div className="space-y-1 text-sm text-zinc-600 font-medium">
-                        <p>{invoice.clientPhone || '+1 (0) 611 22 33 44'}</p>
+                        {invoice.clientPhone && <p>{invoice.clientPhone}</p>}
                         <p>{invoice.clientEmail}</p>
-                        <p>{invoice.clientAddress || 'Your Postal Address, Number, Street, City'}</p>
+                        {invoice.clientAddress && <p>{invoice.clientAddress}</p>}
                     </div>
                 </div>
 
@@ -74,8 +86,8 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, brand
 
                     <div>
                         <h3 className="text-sm font-black text-[#ea580c] uppercase tracking-widest mb-1">Payment Method :</h3>
-                        <p className="text-sm font-medium text-zinc-600">Method : <span className="text-zinc-900 font-bold">{invoice.paymentMethod || branding.paymentMethods?.[0]?.type || 'Bank Transfer'}</span></p>
-                        <p className="text-sm font-medium text-zinc-600">Details : <span className="text-zinc-900 font-bold">{invoice.paymentDetails || branding.paymentMethods?.[0]?.accountNumber || '9523 4567 8975'}</span></p>
+                        <p className="text-sm font-medium text-zinc-600">Method : <span className="text-zinc-900 font-bold">{invoice.paymentMethod || (invoice.status === 'paid' ? '-' : (branding.paymentMethods?.[0]?.type || 'Bank Transfer'))}</span></p>
+                        <p className="text-sm font-medium text-zinc-600">Details : <span className="text-zinc-900 font-bold">{invoice.paymentDetails || (invoice.status === 'paid' ? '-' : (branding.paymentMethods?.[0]?.accountNumber || '-'))}</span></p>
                     </div>
                 </div>
             </div>
@@ -93,7 +105,7 @@ export const InvoiceTemplate: React.FC<InvoiceTemplateProps> = ({ invoice, brand
                             </tr>
                         </thead>
                         <tbody className="bg-zinc-50">
-                            {invoice.items.map((item, index) => (
+                            {invoice.items.map((item: InvoiceItem, index: number) => (
                                 <tr key={index} className={index % 2 === 0 ? 'bg-zinc-100/50' : 'bg-white'}>
                                     <td className="py-4 px-10 text-sm font-bold text-zinc-700">{item.description}</td>
                                     <td className="py-4 px-6 text-center text-sm font-bold text-zinc-700">{item.quantity}</td>

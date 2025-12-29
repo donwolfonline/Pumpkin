@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, Users, CreditCard, Menu, Calendar, FileText, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export function MobileNav() {
     const pathname = usePathname();
@@ -26,7 +27,7 @@ export function MobileNav() {
         { label: 'Documents', icon: <FileText className="h-5 w-5" />, href: '/documents' },
         { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, href: '/analytics' },
         { label: 'Settings', icon: <Settings className="h-5 w-5" />, href: '/settings' },
-        { label: 'Logout', icon: <LogOut className="h-5 w-5" />, href: '/login' },
+        { label: 'Logout', icon: <LogOut className="h-5 w-5" />, href: '#' },
     ];
 
     return (
@@ -48,20 +49,47 @@ export function MobileNav() {
                 )}
             >
                 <div className="grid grid-cols-3 gap-6">
-                    {moreItems.map((item, index) => (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className="flex flex-col items-center gap-2 group"
-                            style={{ transitionDelay: `${index * 50}ms` }}
-                            onClick={() => setIsMoreOpen(false)}
-                        >
-                            <div className="h-14 w-14 rounded-full bg-[#0c2a27] border border-white/10 flex items-center justify-center text-zinc-400 group-hover:text-primary group-hover:border-primary/50 group-hover:bg-[#0c2a27]/80 transition-all shadow-lg hover:shadow-primary/20 hover:scale-110">
-                                {item.icon}
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">{item.label}</span>
-                        </Link>
-                    ))}
+                    {moreItems.map((item, index) => {
+                        const isLogout = item.label === 'Logout';
+                        const content = (
+                            <>
+                                <div className="h-14 w-14 rounded-full bg-[#0c2a27] border border-white/10 flex items-center justify-center text-zinc-400 group-hover:text-primary group-hover:border-primary/50 group-hover:bg-[#0c2a27]/80 transition-all shadow-lg hover:shadow-primary/20 hover:scale-110">
+                                    {item.icon}
+                                </div>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 group-hover:text-white transition-colors">{item.label}</span>
+                            </>
+                        );
+
+                        if (isLogout) {
+                            return (
+                                <button
+                                    key={item.label}
+                                    type="button"
+                                    className="flex flex-col items-center gap-2 group outline-none"
+                                    style={{ transitionDelay: `${index * 50}ms` }}
+                                    onClick={() => {
+                                        setIsMoreOpen(false);
+                                        api.logout();
+                                        window.location.href = '/login';
+                                    }}
+                                >
+                                    {content}
+                                </button>
+                            );
+                        }
+
+                        return (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className="flex flex-col items-center gap-2 group"
+                                style={{ transitionDelay: `${index * 50}ms` }}
+                                onClick={() => setIsMoreOpen(false)}
+                            >
+                                {content}
+                            </Link>
+                        );
+                    })}
                 </div>
             </div>
 

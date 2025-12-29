@@ -1,23 +1,24 @@
 "use client"
 
 import { use, useState, useEffect } from 'react';
-import { DashboardShell } from '@/components/dashboard-shell';
-import { PageHeader } from '@/components/shared/page-header';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { InvoiceStatusBadge } from '@/components/shared/status-badge';
-import { Download, Send, CheckCircle, ArrowLeft, Edit, Eye } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { DashboardShell } from '../../../components/dashboard-shell';
+import { PageHeader } from '../../../components/shared/page-header';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card';
+import { InvoiceStatusBadge } from '../../../components/shared/status-badge';
+import { Download, Send, CheckCircle, ArrowLeft, Edit, Eye, Share2, QrCode, Copy, Check } from 'lucide-react';
+import { formatCurrency } from '../../../lib/utils';
 import Link from 'next/link';
-import type { Invoice, InvoiceStatus } from '@/lib/types/invoice';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
-import { Label } from '@/components/ui/label';
-import { generatePDF } from '@/lib/pdf-generator';
-import { InvoiceTemplate } from '@/components/templates/invoice-template';
-import { getOrganizationBranding, getInvoices, setInvoices } from '@/lib/storage-utils';
-import { OrganizationBranding } from '@/lib/types/organization-settings';
+import { QRCodeSVG } from 'qrcode.react';
+import type { Invoice, InvoiceStatus } from '../../../lib/types/invoice';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
+import { Input } from '../../../components/ui/input';
+import { usePumpkinToast } from '../../../components/ui/pumpkin-toast';
+import { Label } from '../../../components/ui/label';
+import { generatePDF } from '../../../lib/pdf-generator';
+import { InvoiceTemplate } from '../../../components/templates/invoice-template';
+import { getOrganizationBranding, getInvoices, setInvoices } from '../../../lib/storage-utils';
+import { OrganizationBranding } from '../../../lib/types/organization-settings';
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -26,6 +27,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     const [showPreview, setShowPreview] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Invoice>>({});
     const { toast } = usePumpkinToast();
 
@@ -79,6 +82,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         } finally {
             setIsGeneratingPDF(false);
         }
+    };
+
+    const handleCopyLink = () => {
+        const shareUrl = `${window.location.origin}/pay/${id}`;
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast('Link copied to clipboard!', 'success');
+        setTimeout(() => setCopied(false), 2000);
     };
 
     const handleEditClick = () => {
@@ -251,14 +262,23 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             <CardTitle className="text-sm font-medium">Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="grid gap-2">
-                            <Button className="w-full justify-start" size="sm" onClick={handleSendInvoice}>
-                                <Send className="mr-2 h-4 w-4" /> Send Invoice
+                            <Button className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={() => setIsShareDialogOpen(true)}>
+                                <Share2 className="h-3 w-3" /> Share Invoice
                             </Button>
-                            <Button variant="outline" className="w-full justify-start" size="sm" onClick={handleMarkAsPaid}>
-                                <CheckCircle className="mr-2 h-4 w-4" /> {invoice.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
+                            <Button variant="outline" className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={handleSendInvoice}>
+                                <Send className="h-3 w-3" /> Send via Email
                             </Button>
-                            <Button variant="outline" className="w-full justify-start" size="sm" onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
-                                <Download className="mr-2 h-4 w-4" /> {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
+                            <Button variant="outline" className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2" size="sm" onClick={handleMarkAsPaid}>
+                                <CheckCircle className="h-3 w-3" /> {invoice.status === 'paid' ? 'Mark as Unpaid' : 'Mark as Paid'}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                className="w-full h-11 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-bold uppercase tracking-widest text-[9px] gap-2"
+                                size="sm"
+                                onClick={handleDownloadPDF}
+                                disabled={isGeneratingPDF}
+                            >
+                                <Download className="h-3 w-3" /> {isGeneratingPDF ? 'Generating...' : 'Download PDF'}
                             </Button>
                         </CardContent>
                     </Card>
@@ -379,6 +399,61 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             </Button>
                         </div>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Share Dialog with QR Code */}
+            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] w-[90vw] max-w-sm bg-[#0c2a27] border-white/5 text-white rounded-[2rem] backdrop-blur-3xl px-6 py-6 border shadow-2xl">
+                    <DialogHeader className="pt-2">
+                        <DialogTitle className="font-heading uppercase tracking-widest text-sm text-white text-center">Share Invoice</DialogTitle>
+                        <DialogDescription className="text-zinc-500 text-[9px] text-center uppercase font-bold tracking-tight">
+                            Secure payment link for your client
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 flex flex-col items-center space-y-6">
+                        {/* QR Code Section - Responsive Scaling */}
+                        <div className="p-4 bg-white rounded-2xl shadow-xl relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#ea580c]/10 to-transparent pointer-events-none"></div>
+                            <QRCodeSVG
+                                value={`${typeof window !== 'undefined' ? window.location.origin : ''}/pay/${id}`}
+                                size={typeof window !== 'undefined' && window.innerWidth < 640 ? 140 : 180}
+                                level="H"
+                                includeMargin={false}
+                                className="relative z-10 transition-transform duration-500 group-hover:scale-105"
+                            />
+                        </div>
+
+                        {/* Link Selection Area - Better Mobile Handling */}
+                        <div className="w-full space-y-3">
+                            <div className="flex flex-col space-y-1.5">
+                                <Label className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Payment Link</Label>
+                                <div className="relative group">
+                                    <div className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-12 min-h-[48px] flex items-center transition-all duration-300 group-hover:border-white/20">
+                                        <span className="text-[10px] text-zinc-300 font-mono break-all leading-relaxed line-clamp-2">
+                                            {typeof window !== 'undefined' ? window.location.origin : ''}/pay/{id}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        size="icon"
+                                        onClick={handleCopyLink}
+                                        className={`absolute right-1.5 top-1.5 h-9 w-9 shrink-0 rounded-lg transition-all duration-300 shadow-lg ${copied ? 'bg-green-500 hover:bg-green-600 scale-95' : 'bg-[#ea580c] hover:bg-[#ea580c]/90'}`}
+                                    >
+                                        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full p-3 bg-white/5 border border-white/10 rounded-xl flex gap-3 items-start backdrop-blur-md">
+                            <div className="h-4 w-4 rounded-full bg-[#ea580c]/20 flex items-center justify-center shrink-0 mt-0.5">
+                                <QrCode className="h-2.5 w-2.5 text-[#ea580c]" />
+                            </div>
+                            <p className="text-[9px] text-zinc-400 leading-relaxed font-medium">
+                                Secure direct payment link. Verify recipient before sharing.
+                            </p>
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </DashboardShell>

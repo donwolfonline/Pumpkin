@@ -17,7 +17,7 @@ export function Download() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">
-                        <Button className="h-16 px-8 rounded-2xl bg-white text-black hover:bg-zinc-200 flex items-center gap-4 transition-all hover:scale-105">
+                        <Button className="h-16 px-8 rounded-2xl bg-white text-black hover:bg-zinc-200 flex items-center gap-4 transition-all hover:scale-105 shadow-xl">
                             <Apple className="h-8 w-8 fill-current" />
                             <div className="text-left">
                                 <div className="text-[10px] font-bold uppercase tracking-widest leading-none">Download on the</div>
@@ -25,7 +25,7 @@ export function Download() {
                             </div>
                         </Button>
 
-                        <Button className="h-16 px-8 rounded-2xl bg-black text-white border border-white/10 hover:bg-zinc-900 flex items-center gap-4 transition-all hover:scale-105">
+                        <Button className="h-16 px-8 rounded-2xl bg-black text-white border border-white/10 hover:bg-zinc-900 flex items-center gap-4 transition-all hover:scale-105 shadow-xl">
                             <Play className="h-8 w-8 fill-current" />
                             <div className="text-left">
                                 <div className="text-[10px] font-bold uppercase tracking-widest leading-none">Get it on</div>

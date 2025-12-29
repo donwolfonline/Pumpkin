@@ -19,11 +19,11 @@ export function Navbar() {
                     </Link>
 
                     <div className="hidden lg:flex items-center gap-8">
-                        <Link href="#product" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Product</Link>
-                        <Link href="#features" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Features</Link>
+                        <Link href="/product" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Product</Link>
+                        <Link href="#how-it-works" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">How It Works</Link>
                         <Link href="#pricing" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Pricing</Link>
-                        <Link href="#use-cases" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Use Cases</Link>
-                        <Link href="#resources" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Resources</Link>
+                        <Link href="/use-cases" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Use Cases</Link>
+                        <Link href="/resources" className="text-sm font-semibold text-zinc-400 hover:text-white transition-colors">Resources</Link>
                     </div>
                 </div>
 

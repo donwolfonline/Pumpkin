@@ -140,7 +140,7 @@ export default function CRMPage() {
                         {contacts.filter(contact => !searchKey || `${contact.firstName} ${contact.lastName}`.toLowerCase().includes(searchKey.toLowerCase())).map((contact) => (
                             <Link
                                 key={contact.id}
-                                href={`#`} // Placeholder, maybe link to edit later
+                                href={`/crm/${contact.id}`}
                                 className="block"
                             >
                                 <div className="bg-[#0a2c28] border border-white/5 rounded-2xl p-5 space-y-4 active:scale-95 transition-transform">

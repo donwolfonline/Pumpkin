@@ -38,4 +38,5 @@ export interface Invoice {
     paymentDetails?: string; // Account number or additional payment info
     notes?: string;
     terms?: string; // Custom terms for this invoice
+    updatedAt?: string; // ISO Date
 }

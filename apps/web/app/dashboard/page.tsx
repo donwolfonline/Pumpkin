@@ -11,6 +11,7 @@ import { Download, Plus, Loader2 } from 'lucide-react';
 import { useUser } from '@/hooks/use-user';
 import { api } from '@/lib/api';
 import { getSubscriptionStatus } from '@/lib/subscription-utils';
+import type { ChartDataPoint } from '@/lib/analytics-utils';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -20,16 +21,66 @@ export default function DashboardPage() {
         activeAppointments: number;
         totalRevenue: number;
         currency: string;
+        harvestEfficiency?: number;
+        revenueChange?: number;
+        totalSignedContracts?: number;
+        activeProjects?: number;
     } | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
     const [subscriptionStatus, setSubscriptionStatus] = useState(getSubscriptionStatus());
 
+    const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+    const [recentActivities, setRecentActivities] = useState<{
+        user: { name: string; initials: string; avatar: string };
+        action: string;
+        target: string;
+        time: string;
+    }[]>([]);
+
     useEffect(() => {
         const fetchData = async () => {
             try {
+                // Load analytics modules dynamically to avoid server-side issues if any
+                const { getRecentActivities, getRevenueChartData } = await import('@/lib/analytics-utils');
+
                 const analyticsData = await api.getAnalyticsSummary();
                 setStats(analyticsData);
                 setSubscriptionStatus(getSubscriptionStatus());
+
+                // Revenue Chart
+                const revenueData = getRevenueChartData();
+                setChartData(revenueData);
+
+                // Recent Activity
+                const rawActivities = getRecentActivities(5);
+                const formattedActivities = rawActivities.map(item => {
+                    let user = { name: 'System', initials: 'S', avatar: '' };
+                    let action = 'updated';
+                    let target = item.description;
+
+                    if (item.type === 'proposal') {
+                        user = { name: 'You', initials: 'ME', avatar: '' }; // Assuming user created it
+                        action = item.title.toLowerCase().includes('signed') ? 'signed' : 'created';
+                        target = item.description;
+                    } else if (item.type === 'invoice') {
+                        user = { name: 'Client', initials: 'C', avatar: '' };
+                        action = item.title.toLowerCase().includes('paid') ? 'paid' : 'received';
+                        target = item.description;
+                    } else if (item.type === 'contract') {
+                        user = { name: 'You', initials: 'ME', avatar: '' };
+                        action = item.title.toLowerCase().includes('signed') ? 'signed' : 'drafted';
+                        target = item.description;
+                    }
+
+                    return {
+                        user,
+                        action,
+                        target,
+                        time: new Date(item.date).toLocaleDateString()
+                    };
+                });
+                setRecentActivities(formattedActivities);
+
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
@@ -57,15 +108,15 @@ export default function DashboardPage() {
                     {/* Trial/Billing Counter - Redesigned */}
                     {subscriptionStatus.plan === 'free' && (
                         <div className={`group relative overflow-hidden rounded-xl border transition-all hover:scale-[1.02] cursor-pointer ${subscriptionStatus.daysRemaining <= 3
-                                ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]'
-                                : 'bg-primary/10 border-primary/20 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]'
+                            ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]'
+                            : 'bg-primary/10 border-primary/20 hover:border-primary/40 hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]'
                             }`}>
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative px-4 py-2.5">
                                 <div className="flex items-center gap-2.5">
                                     <div className={`flex items-center justify-center w-8 h-8 rounded-lg transition-transform group-hover:rotate-12 ${subscriptionStatus.daysRemaining <= 3
-                                            ? 'bg-red-500/15 text-red-400'
-                                            : 'bg-primary/15 text-primary'
+                                        ? 'bg-red-500/15 text-red-400'
+                                        : 'bg-primary/15 text-primary'
                                         }`}>
                                         <span className="text-lg">⏳</span>
                                     </div>
@@ -142,10 +193,10 @@ export default function DashboardPage() {
 
                         <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
                             <div className="lg:col-span-4">
-                                <RevenueChart data={[]} />
+                                <RevenueChart data={chartData} />
                             </div>
                             <div className="lg:col-span-3">
-                                <RecentActivity activities={[]} />
+                                <RecentActivity activities={recentActivities} />
                             </div>
                         </div>
                     </>

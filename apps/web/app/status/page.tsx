@@ -37,7 +37,7 @@ export default function StatusPage() {
     useEffect(() => {
         const fetchHealthData = async () => {
             try {
-                const response = await fetch('http://localhost:4000/health');
+                const response = await fetch('http://localhost:4000/api/health');
                 if (!response.ok) {
                     throw new Error('Failed to fetch health data');
                 }

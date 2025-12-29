@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
 import { Contact } from '@/lib/types/crm';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,9 @@ export const columns: ColumnDef<Contact>[] = [
                         <AvatarFallback>{contact.firstName[0]}{contact.lastName[0]}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <div className="font-medium">{contact.firstName} {contact.lastName}</div>
+                        <Link href={`/crm/${contact.id}`} className="font-medium hover:text-primary transition-colors">
+                            {contact.firstName} {contact.lastName}
+                        </Link>
                         <div className="text-xs text-muted-foreground">{contact.email}</div>
                     </div>
                 </div>

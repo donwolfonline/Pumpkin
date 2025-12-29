@@ -7,20 +7,33 @@ import { AnalyticsStats, DetailedRevenueChart, CategoryPieChart } from '@/compon
 import { Button } from '@/components/ui/button';
 import { Download, Calendar, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
+import type { ChartDataPoint } from '@/lib/analytics-utils';
 
 export default function AnalyticsPage() {
     const [stats, setStats] = useState<{
         totalRevenue: number;
         totalLeads: number;
         activeAppointments: number;
+        harvestEfficiency?: number;
+        revenueChange?: number;
+        totalSignedContracts?: number;
+        activeProjects?: number;
     } | undefined>(undefined);
+    const [revenueData, setRevenueData] = useState<ChartDataPoint[]>([]);
+    const [categoryData, setCategoryData] = useState<ChartDataPoint[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
+                // Load analytics modules
+                const { getRevenueChartData, getCategoryDistribution } = await import('@/lib/analytics-utils');
+
                 const data = await api.getAnalyticsSummary();
                 setStats(data);
+
+                setRevenueData(getRevenueChartData());
+                setCategoryData(getCategoryDistribution());
             } catch (error) {
                 console.error('Failed to fetch analytics stats:', error);
             } finally {
@@ -63,8 +76,8 @@ export default function AnalyticsPage() {
                     <>
                         <AnalyticsStats data={stats} />
                         <div className="grid gap-6 md:grid-cols-4">
-                            <DetailedRevenueChart data={[]} isLoading={isLoading} />
-                            <CategoryPieChart data={[]} isLoading={isLoading} />
+                            <DetailedRevenueChart data={revenueData} isLoading={isLoading} />
+                            <CategoryPieChart data={categoryData} isLoading={isLoading} />
                         </div>
                     </>
                 )}

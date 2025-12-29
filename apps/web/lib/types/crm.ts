@@ -13,4 +13,8 @@ export interface Contact {
     type: ContactType;
     lastActivity: string; // ISO Date
     avatar?: string;
+    notes?: string;
+    address?: string;
+    tags?: string[];
+    website?: string;
 }

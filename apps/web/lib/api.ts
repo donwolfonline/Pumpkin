@@ -152,6 +152,8 @@ class ApiClient {
         let totalRevenue = 0; // Start with 0 for new users
         let totalLeads = 0;
         let activeAppointments = 0;
+        let harvestEfficiency = 0;
+        let revenueChange = 0;
 
         if (typeof window !== 'undefined') {
             // Invoices - using user-scoped key
@@ -163,6 +165,50 @@ class ApiClient {
                     totalRevenue = revenue;
                 } catch {
                     console.error('Failed to calculate revenue from local storage');
+                }
+            }
+
+            // Harvest Efficiency = (Paid / Total Invoiced) * 100
+            if (invoices && invoices.length > 0) {
+                try {
+                    const paidInvoices = invoices.filter((inv) => inv.status === 'paid');
+                    const totalInvoiced = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+                    if (totalInvoiced > 0) {
+                        harvestEfficiency = Math.round((totalRevenue / totalInvoiced) * 100);
+                    }
+
+                    // Calculate Revenue Change (Current Month vs Last Month)
+                    const now = new Date();
+                    const currentMonth = now.getMonth();
+                    const currentYear = now.getFullYear();
+
+                    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const lastMonth = lastMonthDate.getMonth();
+                    const lastMonthYear = lastMonthDate.getFullYear();
+
+                    const currentMonthRevenue = paidInvoices
+                        .filter(inv => {
+                            if (!inv.issueDate) return false;
+                            const d = new Date(inv.issueDate);
+                            return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                        })
+                        .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
+                    const lastMonthRevenue = paidInvoices
+                        .filter(inv => {
+                            if (!inv.issueDate) return false;
+                            const d = new Date(inv.issueDate);
+                            return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
+                        })
+                        .reduce((sum, inv) => sum + (inv.total || 0), 0);
+
+                    if (lastMonthRevenue > 0) {
+                        revenueChange = Math.round(((currentMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100);
+                    } else if (currentMonthRevenue > 0) {
+                        revenueChange = 100; // 100% growth if started from 0
+                    }
+                } catch {
+                    console.error('Failed to calculate harvest efficiency or revenue change');
                 }
             }
 
@@ -196,10 +242,30 @@ class ApiClient {
             }
         }
 
+        // New Metrics: Signed Contracts & Active Projects
+        const { getContracts, getProjects } = await import('./storage-utils');
+        let totalSignedContracts = 0;
+        let activeProjects = 0;
+
+        try {
+            const contracts = getContracts();
+            totalSignedContracts = contracts.filter(c => c.status === 'signed').length;
+        } catch (e) { console.error('Error fetching contracts stats', e); }
+
+        try {
+            const projects = getProjects();
+            activeProjects = projects.filter(p => p.status === 'active').length;
+        } catch (e) { console.error('Error fetching projects stats', e); }
+
+
         return Promise.resolve({
             totalLeads,
             activeAppointments,
             totalRevenue,
+            harvestEfficiency,
+            revenueChange,
+            totalSignedContracts,
+            activeProjects,
             currency: 'USD'
         });
     }

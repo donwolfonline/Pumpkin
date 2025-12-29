@@ -27,6 +27,11 @@ export interface OrganizationBranding {
             instructions?: string;
         };
     };
+    paymentMethods?: {
+        type: string;
+        accountNumber: string;
+    }[];
+    defaultInvoiceTerms?: string;
 }
 
 export const DEFAULT_BRANDING: OrganizationBranding = {
