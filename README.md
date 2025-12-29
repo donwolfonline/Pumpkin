@@ -2,7 +2,6 @@
 
 <img width="1430" height="662" alt="Screenshot 2025-12-30 at 1 15 26 AM" src="https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90" />
 
-
 A production-ready, multi-tenant SaaS platform for freelancers and service-based businesses.
 
 ## Features
@@ -210,19 +209,16 @@ This project is optimized for deployment on **Vercel** using **Turborepo**.
 #### 1. Setup Vercel Project
 
 - Connect your GitHub repository to Vercel.
-- **IMPORTANT**: During setup, set the **Root Directory** to `apps/web`. Vercel will automatically detect the monorepo and run the install command from the project root.
+- **Root Directory**: Keep this as the **Project Root** (`.`).
 
 #### 2. Configure Vercel Settings
 
-If Vercel asks for build settings or if you need to override them:
+Vercel will now detect the framework as **Next.js** (because `next` is now defined in the root `package.json`).
 
-- **Framework Preset**: `Next.js` (Vercel will detect this automatically if Root Directory is `apps/web`)
+- **Framework Preset**: `Next.js`
 - **Build Command**: `npx turbo run build --filter=web`
-- **Output Directory**: `.next`
-- **Install Command**: `npm install` (Vercel runs this from the monorepo root automatically)
-
-> [!NOTE]
-> By setting the Root Directory to `apps/web`, Vercel scans that specific folder for `next` and satisfies the "Next.js version detected" check, while still using the root workspace for dependencies.
+- **Output Directory**: `apps/web/.next`
+- **Install Command**: `npm install`
 
 #### 3. Environment Variables
 
