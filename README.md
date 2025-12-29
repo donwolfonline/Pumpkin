@@ -39,14 +39,19 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 ```
 pumpkin/
 ├── apps/
-│   ├── web/          # Next.js frontend
-│   └── api/          # NestJS backend
+│   ├── web/          # Next.js frontend application
+│   │   ├── app/      # App Router pages and layouts
+│   │   ├── components/ # Reusable UI components
+│   │   ├── lib/      # Utilities and types
+│   │   └── public/   # Static assets
+│   └── api/          # NestJS backend application
+│       ├── src/      # Source code
+│       └── test/     # E2E tests
 ├── packages/
-│   ├── ui/           # Shared UI components
 │   ├── types/        # Shared TypeScript types
-│   ├── utils/        # Shared utilities
-│   └── config/       # Shared configuration
-└── infrastructure/   # Docker, database migrations
+│   └── ui/           # Shared UI components (optional)
+├── infrastructure/   # Docker and deployment config
+└── scripts/          # Developer scripts
 ```
 
 ## Getting Started
@@ -59,26 +64,74 @@ pumpkin/
 
 ### Installation
 
-```bash
-# Install dependencies
-npm install
+1. **Clone the repository**
 
-# Start development database
-docker-compose -f infrastructure/docker/docker-compose.yml up -d
+    ```bash
+    git clone <repository-url>
+    cd pumpkin
+    ```
 
-# Run database migrations
-cd apps/api
-npm run migration:run
+2. **Install dependencies**
 
-# Start development servers
-npm run dev
-```
+    ```bash
+    npm install
+    ```
+
+3. **Environment Setup**
+    - Copy `.env.example` to `.env` in `apps/web` and `apps/api`.
+    - Update the variables with your configuration.
+
+4. **Start Database**
+
+    ```bash
+    docker-compose -f infrastructure/docker/docker-compose.yml up -d
+    ```
+
+5. **Run Migrations (Backend)**
+
+    ```bash
+    cd apps/api
+    npm run migration:run
+    ```
+
+6. **Start Development Servers**
+
+    ```bash
+    # From root directory
+    npm run dev
+    ```
 
 Visit:
 
 - Frontend: <http://localhost:3000>
 - Backend API: <http://localhost:4000>
-- API Docs: <http://localhost:4000/api>
+
+## Features & Usage
+
+### 📄 Proposals & Contracts
+
+- **Create Proposals**: Generate professional proposals with dynamic pricing.
+- **Dual Signatures**: Provider signs first, then shares via **QR Code** or **Public Link** for client signature.
+- **PDF Download**: Automatically generate and download high-quality PDFs of signed documents.
+
+### 💳 Payments
+
+- **Stripe Integration**: Secure payment processing for subscriptions and invoices.
+- **Subscription Plans**: Managed via the admin dashboard.
+
+### 📊 CRM & Analytics
+
+- **Dashboard**: Real-time overview of business performance.
+- **Client Management**: Track leads and client interactions.
+
+## Troubleshooting
+
+### Common Issues
+
+- **Port Conflicts**: Ensure ports `3000` (Web) and `4000` (API) are free.
+- **Database Connection**: Check if Docker container is running (`docker ps`).
+- **Missing Signatures in PDF**: Ensure you have signed the proposal as *both* provider and client to see both signatures.
+- **"Proposal Not Found"**: Verify the ID in the URL allows public access and isn't expired.
 
 ## Development
 
@@ -94,9 +147,6 @@ npm run test
 
 # Lint code
 npm run lint
-
-# Format code
-npm run format
 ```
 
 ## License

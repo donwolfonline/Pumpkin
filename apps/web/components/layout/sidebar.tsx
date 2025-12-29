@@ -14,6 +14,8 @@ import {
     Users,
     Calendar,
     FileText,
+    FileSignature,
+    FileEdit,
     CreditCard,
     BarChart3,
     Settings,
@@ -37,6 +39,8 @@ export function Sidebar({ className }: SidebarProps) {
         { label: 'Projects', icon: <GitBranch className="h-4 w-4" />, href: '/projects' },
         { label: 'Scheduling', icon: <Calendar className="h-4 w-4" />, href: '/scheduling' },
         { label: 'Documents', icon: <FileText className="h-4 w-4" />, href: '/documents' },
+        { label: 'Proposals', icon: <FileEdit className="h-4 w-4" />, href: '/proposals' },
+        { label: 'Contracts', icon: <FileSignature className="h-4 w-4" />, href: '/contracts' },
         { label: 'Payments', icon: <CreditCard className="h-4 w-4" />, href: '/payments' },
         { label: 'Analytics', icon: <BarChart3 className="h-4 w-4" />, href: '/analytics' },
     ];
@@ -106,11 +110,13 @@ export function Sidebar({ className }: SidebarProps) {
                                 }
                             </p>
                             <Button
-                                className="w-full h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2"
-                                onClick={() => window.location.href = '/settings'}
+                                className="w-full h-9 rounded-xl bg-gradient-to-r from-primary to-[#f97316] hover:opacity-90 text-primary-foreground font-bold uppercase tracking-widest text-[9px] gap-2 shadow-lg shadow-primary/20"
+                                asChild
                             >
-                                <ArrowUpCircle className="h-3 w-3" />
-                                Upgrade Now
+                                <Link href="/settings">
+                                    <ArrowUpCircle className="h-3 w-3" />
+                                    Upgrade Now
+                                </Link>
                             </Button>
                         </div>
                     </div>
@@ -119,8 +125,11 @@ export function Sidebar({ className }: SidebarProps) {
 
             <div className="p-6 border-t border-white/5 bg-[#051c1c]">
                 <div className="flex items-center gap-3 p-4 inset-pod rounded-2xl border border-white/5">
-                    <div className="h-10 w-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm shadow-[0_0_15px_rgba(249,115,22,0.2)]">
-                        {initials}
+                    <div className="h-10 w-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm shadow-[0_0_15px_rgba(249,115,22,0.2)] overflow-hidden">
+                        {user?.avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={user.avatar} alt={fullName} className="h-full w-full object-cover" />
+                        ) : initials.toLowerCase()}
                     </div>
                     <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-bold text-white truncate font-heading uppercase tracking-widest">{fullName}</p>

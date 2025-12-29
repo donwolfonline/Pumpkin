@@ -14,22 +14,16 @@ import { api } from '@/lib/api';
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { getUserData, setUserData } from '@/lib/storage-utils';
+import { getOrganizationBranding, setOrganizationBranding, getUserData, setUserData } from '@/lib/storage-utils';
+import { OrganizationBranding } from '@/lib/types/organization-settings';
 import { getBillingDaysRemaining } from '@/lib/subscription-utils';
-
-interface CompanySettings {
-    name: string;
-    address: string;
-    email: string;
-    website: string;
-    logoUrl: string;
-}
 
 interface ProfileSettings {
     firstName: string;
     lastName: string;
     email: string;
     bio: string;
+    avatar?: string;
 }
 
 interface TeamMember {
@@ -53,14 +47,12 @@ export default function SettingsPage() {
     const { toast } = usePumpkinToast();
 
     // --- State with lazy initialization to avoid cascading renders ---
-    const [company, setCompany] = useState<CompanySettings>(() =>
-        getUserData<CompanySettings>('pumpkin_company_settings') || { name: '', address: '', email: '', website: '', logoUrl: '' }
-    );
+    const [company, setCompany] = useState<OrganizationBranding>(() => getOrganizationBranding());
     const [profile, setProfile] = useState<ProfileSettings>(() => {
         const loadedProfile = getUserData<ProfileSettings>('pumpkin_profile_settings');
-        if (loadedProfile) return loadedProfile;
         const apiUser = api.getUser();
-        if (apiUser) return { firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '' };
+        if (loadedProfile) return { ...loadedProfile, avatar: apiUser?.avatar };
+        if (apiUser) return { firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '', avatar: apiUser.avatar };
         return { firstName: '', lastName: '', email: '', bio: '' };
     });
     const [team, setTeam] = useState<TeamMember[]>(() =>
@@ -96,8 +88,28 @@ export default function SettingsPage() {
     }, []);
 
     // --- Handlers ---
-    const handleSaveCompany = () => { setUserData('pumpkin_company_settings', company); toast('Company settings saved!', 'success'); };
-    const handleSaveProfile = () => { setUserData('pumpkin_profile_settings', profile); toast('Profile updated!', 'success'); };
+    const handleSaveCompany = () => {
+        setOrganizationBranding(company);
+        toast('Organization branding saved!', 'success');
+    };
+    const handleSaveProfile = () => {
+        setUserData('pumpkin_profile_settings', profile);
+
+        // Sync with global user object for layout consistency
+        const currentUser = api.getUser();
+        if (currentUser) {
+            const updatedUser = {
+                ...currentUser,
+                firstName: profile.firstName,
+                lastName: profile.lastName,
+                email: profile.email,
+                avatar: profile.avatar
+            };
+            api.setUser(updatedUser);
+        }
+
+        toast('Profile updated!', 'success');
+    };
     const handleSaveNotifications = () => { setUserData('pumpkin_notifications_settings', notifications); toast('Preferences saved.', 'success'); };
 
     const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,7 +117,17 @@ export default function SettingsPage() {
         if (file) {
             if (file.size > 1024 * 1024) return toast("File too large (max 1MB)", 'error');
             const reader = new FileReader();
-            reader.onloadend = () => setCompany(prev => ({ ...prev, logoUrl: reader.result as string }));
+            reader.onloadend = () => setCompany((prev: OrganizationBranding) => ({ ...prev, logo: reader.result as string }));
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 1024 * 1024) return toast("File too large (max 1MB)", 'error');
+            const reader = new FileReader();
+            reader.onloadend = () => setProfile((prev) => ({ ...prev, avatar: reader.result as string }));
             reader.readAsDataURL(file);
         }
     };
@@ -232,19 +254,47 @@ export default function SettingsPage() {
                     {/* --- COMPANY --- */}
                     <TabsContent value="company" className="mt-0 space-y-6">
                         <Card className="bg-black/20 border-white/5 rounded-2xl shadow-xl backdrop-blur-xl">
-                            <CardHeader><CardTitle className="text-white font-heading uppercase tracking-widest text-sm">Company Branding</CardTitle><CardDescription className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Your business identity.</CardDescription></CardHeader>
+                            <CardHeader><CardTitle className="text-white font-heading uppercase tracking-widest text-sm">Organization Branding</CardTitle><CardDescription className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Your professional identity across all documents.</CardDescription></CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Logo</Label>
-                                    <div className="flex items-start gap-6"><div className="h-24 w-24 shrink-0 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden">{company.logoUrl ? (
+                                    <div className="flex items-start gap-6"><div className="h-24 w-24 shrink-0 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden">{company.logo ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={company.logoUrl} alt="Logo" className="h-full w-full object-cover" />
+                                        <img src={company.logo} alt="Logo" className="h-full w-full object-contain p-2" />
                                     ) : <ImageIcon className="h-8 w-8 text-zinc-600" />}</div>
-                                        <div className="space-y-3"><div className="flex gap-3"><Button variant="outline" className="h-9 px-4 text-xs font-bold uppercase tracking-widest border-white/10 bg-white/5" onClick={() => document.getElementById('logo')?.click()}><Upload className="mr-2 h-3 w-3" /> Upload</Button>{company.logoUrl && <Button variant="ghost" className="h-9 px-4 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10" onClick={() => setCompany({ ...company, logoUrl: '' })}>Remove</Button>}</div><input type="file" id="logo" className="hidden" accept="image/*" onChange={handleLogoUpload} /><p className="text-[10px] text-zinc-500">Max 1MB. JPG/PNG.</p></div></div></div>
-                                <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Organization Name</Label><Input value={company.name} onChange={e => setCompany({ ...company, name: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" placeholder="Acme Inc." /></div>
-                                <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Address</Label><Input value={company.address} onChange={e => setCompany({ ...company, address: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div>
-                                <div className="grid grid-cols-2 gap-6"><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Email</Label><Input value={company.email} onChange={e => setCompany({ ...company, email: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Website</Label><Input value={company.website} onChange={e => setCompany({ ...company, website: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div></div>
+                                        <div className="space-y-3"><div className="flex gap-3"><Button variant="outline" className="h-9 px-4 text-xs font-bold uppercase tracking-widest border-white/10 bg-white/5" onClick={() => document.getElementById('logo')?.click()}><Upload className="mr-2 h-3 w-3" /> Upload</Button>{company.logo && <Button variant="ghost" className="h-9 px-4 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10" onClick={() => setCompany({ ...company, logo: '' })}>Remove</Button>}</div><input type="file" id="logo" className="hidden" accept="image/*" onChange={handleLogoUpload} /><p className="text-[10px] text-zinc-500">Max 1MB. JPG/PNG.</p></div></div></div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Organization Name</Label><Input value={company.companyName} onChange={e => setCompany({ ...company, companyName: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" placeholder="Acme Inc." /></div>
+                                    <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Contact Phone</Label><Input value={company.phone} onChange={e => setCompany({ ...company, phone: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" placeholder="+1 (555) 000-0000" /></div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Address Details</Label>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Input placeholder="Street" value={company.address.street} onChange={e => setCompany({ ...company, address: { ...company.address, street: e.target.value } })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" />
+                                        <Input placeholder="City" value={company.address.city} onChange={e => setCompany({ ...company, address: { ...company.address, city: e.target.value } })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" />
+                                        <Input placeholder="State/Prov" value={company.address.state} onChange={e => setCompany({ ...company, address: { ...company.address, state: e.target.value } })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" />
+                                        <Input placeholder="Country" value={company.address.country} onChange={e => setCompany({ ...company, address: { ...company.address, country: e.target.value } })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6"><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Email</Label><Input value={company.email} onChange={e => setCompany({ ...company, email: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Website</Label><Input value={company.website || ''} onChange={e => setCompany({ ...company, website: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div></div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Brand Colors</Label>
+                                    <div className="flex gap-4">
+                                        <div className="flex-1 flex items-center gap-2 bg-black/40 border border-white/5 rounded-xl p-2 px-4">
+                                            <input type="color" value={company.brandColors.primary} onChange={e => setCompany({ ...company, brandColors: { ...company.brandColors, primary: e.target.value } })} className="w-8 h-8 rounded-lg bg-transparent border-none cursor-pointer" />
+                                            <span className="text-[10px] font-bold uppercase text-zinc-500">Primary Color</span>
+                                        </div>
+                                        <div className="flex-1 flex items-center gap-2 bg-black/40 border border-white/5 rounded-xl p-2 px-4">
+                                            <input type="color" value={company.brandColors.accent} onChange={e => setCompany({ ...company, brandColors: { ...company.brandColors, accent: e.target.value } })} className="w-8 h-8 rounded-lg bg-transparent border-none cursor-pointer" />
+                                            <span className="text-[10px] font-bold uppercase text-zinc-500">Accent Color</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </CardContent>
-                            <CardFooter className="border-t border-white/5 pt-6"><Button onClick={handleSaveCompany} className="h-12 px-8 rounded-xl bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px]">Save Changes</Button></CardFooter>
+                            <CardFooter className="border-t border-white/5 pt-6"><Button onClick={handleSaveCompany} className="h-12 px-8 rounded-xl bg-primary text-primary-foreground font-bold uppercase tracking-widest text-[10px]">Save Branding Settings</Button></CardFooter>
                         </Card>
                     </TabsContent>
 
@@ -253,6 +303,33 @@ export default function SettingsPage() {
                         <Card className="bg-black/20 border-white/5 rounded-2xl shadow-xl backdrop-blur-xl">
                             <CardHeader><CardTitle className="text-white font-heading uppercase tracking-widest text-sm">Profile</CardTitle><CardDescription className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Personal details.</CardDescription></CardHeader>
                             <CardContent className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Profile Picture</Label>
+                                    <div className="flex items-center gap-6">
+                                        <div className="h-20 w-20 shrink-0 rounded-full bg-primary/20 border border-white/10 flex items-center justify-center overflow-hidden">
+                                            {profile.avatar ? (
+                                                // eslint-disable-next-line @next/next/no-img-element
+                                                <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <User className="h-8 w-8 text-primary" />
+                                            )}
+                                        </div>
+                                        <div className="space-y-3">
+                                            <div className="flex gap-3">
+                                                <Button variant="outline" className="h-9 px-4 text-xs font-bold uppercase tracking-widest border-white/10 bg-white/5" onClick={() => document.getElementById('avatar')?.click()}>
+                                                    <Upload className="mr-2 h-3 w-3" /> Change
+                                                </Button>
+                                                {profile.avatar && (
+                                                    <Button variant="ghost" className="h-9 px-4 text-xs font-bold uppercase tracking-widest text-red-500 hover:bg-red-500/10" onClick={() => setProfile({ ...profile, avatar: '' })}>
+                                                        Remove
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+                                            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Max 1MB. SQUARE JPG/PNG PREFERRED.</p>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-2 gap-6"><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">First Name</Label><Input value={profile.firstName} onChange={e => setProfile({ ...profile, firstName: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div><div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Last Name</Label><Input value={profile.lastName} onChange={e => setProfile({ ...profile, lastName: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div></div>
                                 <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Email</Label><Input value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} className="h-12 bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div>
                                 <div className="space-y-2"><Label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Bio</Label><Textarea value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })} className="min-h-[100px] bg-black/40 border-white/5 rounded-xl text-xs font-bold uppercase tracking-widest" /></div>

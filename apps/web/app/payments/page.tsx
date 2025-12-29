@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/shared/empty-state';
 import Link from 'next/link';
 import { InvoiceStatusBadge } from '@/components/shared/status-badge';
 import { formatCurrency } from '@/lib/utils';
+import { getInvoices, setInvoices, ensureContactExists } from '@/lib/storage-utils';
+import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 
 import {
     Dialog,
@@ -25,41 +27,49 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 export default function PaymentsPage() {
-    const [invoices, setInvoices] = useState<Invoice[]>([]);
+    const [invoices, setInvoicesList] = useState<Invoice[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    const { toast } = usePumpkinToast();
+
     // Load invoices on mount
     useEffect(() => {
-        const saved = localStorage.getItem('pumpkin_invoices');
-        if (saved) {
-            try {
-                setInvoices(JSON.parse(saved));
-            } catch (error) {
-                console.error('Failed to load invoices:', error);
-            }
-        }
-        setIsLoading(false);
+        const loadData = () => {
+            setInvoicesList(getInvoices());
+            setIsLoading(false);
+        };
+        // Small delay to ensure clean mount and avoid cascading render warning
+        const timer = setTimeout(loadData, 0);
+        return () => clearTimeout(timer);
     }, []);
 
-    // Save invoices to localStorage whenever they change
-    useEffect(() => {
-        if (!isLoading && invoices.length >= 0) {
-            localStorage.setItem('pumpkin_invoices', JSON.stringify(invoices));
-        }
-    }, [invoices, isLoading]);
+    // Helper to update both state and storage
+    const updateInvoices = (newInvoices: Invoice[]) => {
+        setInvoicesList(newInvoices);
+        setInvoices(newInvoices);
+    };
 
     const handleCreateInvoice = (e: React.FormEvent) => {
         e.preventDefault();
         const formData = new FormData(e.target as HTMLFormElement);
+        const clientName = formData.get('clientName') as string;
+        const clientEmail = formData.get('clientEmail') as string || '';
+
+        // Automatically ensure contact exists in CRM
+        const contact = ensureContactExists({
+            fullName: clientName,
+            email: clientEmail,
+            type: 'client'
+        });
 
         // Create a new invoice object
         const newInvoice: Invoice = {
             id: crypto.randomUUID(),
             invoiceNumber: `INV-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-            clientName: formData.get('clientName') as string,
-            clientEmail: formData.get('clientEmail') as string || '',
-            clientId: crypto.randomUUID(),
+            clientName,
+            clientEmail: contact.email,
+            clientId: contact.id,
             status: 'draft',
             issueDate: new Date().toISOString(),
             dueDate: formData.get('dueDate') as string || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -71,18 +81,16 @@ export default function PaymentsPage() {
                 amount: parseFloat(formData.get('amount') as string) || 0,
             }],
             subtotal: parseFloat(formData.get('amount') as string) || 0,
+            taxRate: 0,
             tax: 0,
             total: parseFloat(formData.get('amount') as string) || 0,
         };
 
-        // Add to state
-        setInvoices(prev => [newInvoice, ...prev]);
+        // Add to state and storage
+        updateInvoices([newInvoice, ...invoices]);
         setIsDialogOpen(false);
 
-        // Show success message briefly
-        setTimeout(() => {
-            alert('Invoice created successfully!');
-        }, 100);
+        toast(`${clientName} has been added to your patch and contacts.`, 'success');
     };
 
     const searchKey: string = ""; // Placeholder for search functionality

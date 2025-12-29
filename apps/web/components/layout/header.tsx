@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useUser } from '@/hooks/use-user';
-import { Bell, Check, Trash2, X } from 'lucide-react';
+import { Bell, Check, X } from 'lucide-react';
 import { useNotifications } from '@/components/providers/notification-provider';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -118,7 +118,7 @@ export function Header() {
                                             <Bell className="h-4 w-4 text-zinc-600" />
                                         </div>
                                         <p className="text-xs text-zinc-500 font-bold">No new notifications</p>
-                                        <p className="text-[10px] text-zinc-600 mt-1">You're all caught up!</p>
+                                        <p className="text-[10px] text-zinc-600 mt-1">You&apos;re all caught up!</p>
                                     </div>
                                 )}
                             </div>
@@ -132,7 +132,7 @@ export function Header() {
                         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate max-w-[100px] text-right">Registered Patch</span>
                     </div>
                     <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-white/5 hover:ring-primary/40 transition-all shadow-lg shadow-black/20">
-                        <AvatarImage src="" alt={fullName} />
+                        <AvatarImage src={user?.avatar || ""} alt={fullName} className="object-cover" />
                         <AvatarFallback className="bg-primary/20 text-primary font-bold">{initials}</AvatarFallback>
                     </Avatar>
                 </div>

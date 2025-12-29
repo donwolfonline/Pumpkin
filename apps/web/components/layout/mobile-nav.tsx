@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, CreditCard, Menu, Calendar, FileText, BarChart3, GitBranch, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Menu, Calendar, FileText, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature } from 'lucide-react';
 
 export function MobileNav() {
     const pathname = usePathname();
@@ -12,18 +12,21 @@ export function MobileNav() {
 
     const items = [
         { label: 'Home', icon: <LayoutDashboard className="h-5 w-5" />, href: '/dashboard' },
-        { label: 'CRM', icon: <Users className="h-5 w-5" />, href: '/crm' },
-        { label: 'Bills', icon: <CreditCard className="h-5 w-5" />, href: '/payments' },
+        { label: 'Contacts', icon: <Users className="h-5 w-5" />, href: '/crm' },
+        { label: 'Payments', icon: <CreditCard className="h-5 w-5" />, href: '/payments' },
     ];
 
     const moreItems = [
+        { label: 'Payments', icon: <CreditCard className="h-5 w-5" />, href: '/payments' },
+        { label: 'CRM', icon: <Users className="h-5 w-5" />, href: '/crm' },
+        { label: 'Proposals', icon: <FileEdit className="h-5 w-5" />, href: '/proposals' },
+        { label: 'Contracts', icon: <FileSignature className="h-5 w-5" />, href: '/contracts' },
         { label: 'Projects', icon: <GitBranch className="h-5 w-5" />, href: '/projects' },
         { label: 'Scheduling', icon: <Calendar className="h-5 w-5" />, href: '/scheduling' },
         { label: 'Documents', icon: <FileText className="h-5 w-5" />, href: '/documents' },
         { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, href: '/analytics' },
-        { label: 'Profile', icon: <Users className="h-5 w-5" />, href: '/settings/profile' },
         { label: 'Settings', icon: <Settings className="h-5 w-5" />, href: '/settings' },
-        { label: 'Logout', icon: <LogOut className="h-5 w-5" />, href: '/logout' },
+        { label: 'Logout', icon: <LogOut className="h-5 w-5" />, href: '/login' },
     ];
 
     return (

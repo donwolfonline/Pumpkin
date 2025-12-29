@@ -15,6 +15,7 @@ export interface User {
     lastName: string;
     organizationId: string;
     role: string;
+    avatar?: string;
 }
 
 class ApiClient {

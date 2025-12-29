@@ -6,61 +6,56 @@ import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InvoiceStatusBadge } from '@/components/shared/status-badge';
-import { Separator } from '@/components/ui/separator';
-import { Download, Send, CheckCircle, ArrowLeft, Edit } from 'lucide-react';
+import { Download, Send, CheckCircle, ArrowLeft, Edit, Eye } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
-import type { Invoice } from '@/lib/types/invoice';
+import type { Invoice, InvoiceStatus } from '@/lib/types/invoice';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Label } from '@/components/ui/label';
 import { generatePDF } from '@/lib/pdf-generator';
+import { InvoiceTemplate } from '@/components/templates/invoice-template';
+import { getOrganizationBranding, getInvoices, setInvoices } from '@/lib/storage-utils';
+import { OrganizationBranding } from '@/lib/types/organization-settings';
 
 export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
     const [invoice, setInvoice] = useState<Invoice | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [branding, setBranding] = useState<OrganizationBranding>(getOrganizationBranding());
+    const [showPreview, setShowPreview] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [editForm, setEditForm] = useState<Partial<Invoice>>({});
+    const { toast } = usePumpkinToast();
 
     useEffect(() => {
-        // Load invoice from localStorage
-        const savedInvoices = localStorage.getItem('pumpkin_invoices');
-        if (savedInvoices) {
-            try {
-                const invoices = JSON.parse(savedInvoices);
-                const foundInvoice = invoices.find((inv: Invoice) => inv.id === id);
-                setInvoice(foundInvoice || null);
-            } catch (error) {
-                console.error('Failed to load invoice:', error);
-            }
-        }
-        setIsLoading(false);
+        // Load invoice from storage util
+        const invoices = getInvoices();
+        const foundInvoice = invoices.find((inv: Invoice) => inv.id === id);
+        setInvoice(foundInvoice || null);
+        setBranding(getOrganizationBranding());
     }, [id]);
 
     const handleMarkAsPaid = () => {
         if (!invoice) return;
 
-        const newStatus = invoice.status === 'paid' ? 'pending' : 'paid';
-        const updatedInvoice = { ...invoice, status: newStatus };
+        const newStatus: InvoiceStatus = invoice.status === 'paid' ? 'pending' : 'paid';
+        const updatedInvoice: Invoice = { ...invoice, status: newStatus };
 
-        // Update in localStorage
-        const savedInvoices = localStorage.getItem('pumpkin_invoices');
-        if (savedInvoices) {
-            const invoices = JSON.parse(savedInvoices);
-            const index = invoices.findIndex((inv: Invoice) => inv.id === id);
-            if (index !== -1) {
-                invoices[index] = updatedInvoice;
-                localStorage.setItem('pumpkin_invoices', JSON.stringify(invoices));
-                setInvoice(updatedInvoice);
-                alert(`Invoice marked as ${newStatus}!`);
-            }
+        // Update in storage
+        const invoices = getInvoices();
+        const index = invoices.findIndex((inv: Invoice) => inv.id === id);
+        if (index !== -1) {
+            invoices[index] = updatedInvoice;
+            setInvoices(invoices);
+            setInvoice(updatedInvoice);
+            toast(`Invoice marked as ${newStatus}!`, 'success');
         }
     };
 
     const handleSendInvoice = () => {
-        alert(`Invoice will be sent to ${invoice?.clientEmail || 'client'}. (Email functionality coming soon!)`);
+        toast(`Invoice will be sent to ${invoice?.clientEmail || 'client'}. (Email functionality coming soon!)`, 'info');
     };
 
     const handleDownloadPDF = async () => {
@@ -68,10 +63,19 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
         setIsGeneratingPDF(true);
         try {
+            // Temporarily show the template if it's hidden to ensure it's in the DOM
+            const wasShowing = showPreview;
+            if (!wasShowing) setShowPreview(true);
+
+            // Wait for render
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             await generatePDF('invoice-content', `invoice-${invoice.invoiceNumber}.pdf`);
+
+            if (!wasShowing) setShowPreview(false);
         } catch (error) {
             console.error('Failed to generate PDF:', error);
-            alert('Failed to generate PDF. Please try again.');
+            toast('Failed to generate PDF. Please try again.', 'error');
         } finally {
             setIsGeneratingPDF(false);
         }
@@ -83,6 +87,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 clientName: invoice.clientName,
                 clientEmail: invoice.clientEmail,
                 total: invoice.total,
+                subtotal: invoice.subtotal,
+                taxRate: invoice.taxRate || 10,
                 dueDate: invoice.dueDate,
                 items: invoice.items,
             });
@@ -94,37 +100,39 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         e.preventDefault();
         if (!invoice) return;
 
-        const newTotal = editForm.total !== undefined ? editForm.total : invoice.total;
+        const currentTaxRate = editForm.taxRate !== undefined ? editForm.taxRate : (invoice.taxRate || 10);
+        const subtotal = editForm.subtotal !== undefined ? editForm.subtotal : invoice.subtotal;
+        const tax = subtotal * (currentTaxRate / 100);
+        const total = subtotal + tax;
 
-        // Ensure item amount syncs with total (single item assumption for now)
+        // Ensure item amount syncs with subtotal (single item assumption for now)
         const currentItem = editForm.items?.[0] || invoice.items[0];
         const updatedItems = [{
             ...currentItem,
-            rate: newTotal,
-            amount: newTotal,
+            rate: subtotal,
+            amount: subtotal,
             description: currentItem?.description || 'Service',
         }];
 
-        const updatedInvoice = {
+        const updatedInvoice: Invoice = {
             ...invoice,
             ...editForm,
             items: updatedItems,
-            subtotal: newTotal,
-            total: newTotal,
-        };
+            subtotal: subtotal,
+            taxRate: currentTaxRate,
+            tax: tax,
+            total: total,
+        } as Invoice;
 
-        // Update in localStorage
-        const savedInvoices = localStorage.getItem('pumpkin_invoices');
-        if (savedInvoices) {
-            const invoices = JSON.parse(savedInvoices);
-            const index = invoices.findIndex((inv: Invoice) => inv.id === id);
-            if (index !== -1) {
-                invoices[index] = updatedInvoice;
-                localStorage.setItem('pumpkin_invoices', JSON.stringify(invoices));
-                setInvoice(updatedInvoice);
-                setIsEditing(false);
-                alert('Invoice updated successfully!');
-            }
+        // Update in storage
+        const invoices = getInvoices();
+        const index = invoices.findIndex((inv: Invoice) => inv.id === id);
+        if (index !== -1) {
+            invoices[index] = updatedInvoice;
+            setInvoices(invoices);
+            setInvoice(updatedInvoice);
+            setIsEditing(false);
+            toast('Invoice updated successfully!', 'success');
         }
     };
 
@@ -150,76 +158,91 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     <ArrowLeft className="mr-1 h-3 w-3" />
                     Back to Invoices
                 </Link>
-                <PageHeader
-                    title={`Invoice ${invoice.invoiceNumber}`}
-                    description="View and manage this invoice."
-                    action={{
-                        label: 'Edit Invoice',
-                        icon: <Edit className="h-4 w-4" />,
-                        onClick: handleEditClick
-                    }}
-                />
+                <div className="flex justify-between items-center">
+                    <PageHeader
+                        title={`Invoice ${invoice.invoiceNumber}`}
+                        description="View and manage this invoice."
+                        action={{
+                            label: 'Edit Invoice',
+                            icon: <Edit className="h-4 w-4" />,
+                            onClick: handleEditClick
+                        }}
+                    />
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="bg-[#0c2a27] border-white/5 rounded-xl h-9 px-4 text-xs font-bold uppercase tracking-widest"
+                    >
+                        <Eye className="mr-2 h-4 w-4" />
+                        {showPreview ? 'Standard View' : 'Professional Preview'}
+                    </Button>
+                </div>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
                 <div className="md:col-span-2 space-y-6">
-                    <Card id="invoice-content" className="bg-[#051c1c]">
-                        <CardHeader className="flex flex-row items-start justify-between">
-                            <div>
-                                <CardTitle className="text-xl">Invoice Details</CardTitle>
-                                <p className="text-sm text-muted-foreground">Issued on {new Date(invoice.issueDate).toLocaleDateString()}</p>
+                    {showPreview ? (
+                        <div className="w-full border border-white/5 rounded-3xl bg-zinc-900 flex justify-center py-6 sm:py-10 px-4 overflow-hidden">
+                            <div className="relative w-[320px] h-[440px] sm:w-[480px] h-[660px] md:w-[600px] h-[825px] lg:w-[800px] lg:h-[1100px] shrink-0">
+                                <div className="absolute top-0 left-0 w-[800px] transform scale-[0.4] sm:scale-[0.6] md:scale-[0.75] lg:scale-100 origin-top-left transition-transform duration-300">
+                                    <InvoiceTemplate invoice={invoice} branding={branding} />
+                                </div>
                             </div>
-                            <InvoiceStatusBadge status={invoice.status} />
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex justify-between items-start">
+                        </div>
+                    ) : (
+                        <Card className="bg-[#051c1c] border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                            <CardHeader className="flex flex-row items-start justify-between p-8 border-b border-white/5">
                                 <div>
-                                    <h4 className="text-sm font-semibold mb-1">Billed To:</h4>
-                                    <p className="text-sm">{invoice.clientName}</p>
-                                    {invoice.clientEmail && <p className="text-sm text-muted-foreground">{invoice.clientEmail}</p>}
+                                    <CardTitle className="text-xl font-bold text-white">Invoice Details</CardTitle>
+                                    <p className="text-sm text-zinc-500 mt-1">Issued on {new Date(invoice.issueDate).toLocaleDateString()}</p>
                                 </div>
-                                <div className="text-right">
-                                    <h4 className="text-sm font-semibold mb-1">Due Date:</h4>
-                                    <p className="text-sm">{new Date(invoice.dueDate).toLocaleDateString()}</p>
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            <div>
-                                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-muted-foreground mb-4">
-                                    <div className="col-span-8">Description</div>
-                                    <div className="col-span-4 text-right">Amount</div>
-                                </div>
-                                <div className="space-y-3">
-                                    {invoice.items.map((item: any, i: number) => (
-                                        <div key={i} className="grid grid-cols-12 gap-4 text-sm">
-                                            <div className="col-span-8 font-medium">{item.description}</div>
-                                            <div className="col-span-4 text-right font-medium">{formatCurrency(item.amount)}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            <div className="flex justify-end">
-                                <div className="w-1/2 space-y-2">
-                                    <div className="flex justify-between text-base font-bold">
-                                        <span>Total</span>
-                                        <span>{formatCurrency(invoice.total)}</span>
+                                <InvoiceStatusBadge status={invoice.status} />
+                            </CardHeader>
+                            <CardContent className="space-y-8 p-8">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#ea580c] mb-2">Billed To:</h4>
+                                        <p className="text-lg font-bold text-white">{invoice.clientName}</p>
+                                        {invoice.clientEmail && <p className="text-sm text-zinc-400">{invoice.clientEmail}</p>}
+                                    </div>
+                                    <div className="text-right">
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-[#ea580c] mb-2">Due Date:</h4>
+                                        <p className="text-lg font-bold text-white">{new Date(invoice.dueDate).toLocaleDateString()}</p>
                                     </div>
                                 </div>
-                            </div>
 
-                            {invoice.notes && (
-                                <div className="bg-muted/30 p-4 rounded-lg text-sm text-muted-foreground">
-                                    <span className="font-semibold block mb-1 text-foreground">Notes:</span>
-                                    {invoice.notes}
+                                <div className="bg-black/20 rounded-2xl p-6">
+                                    <div className="grid grid-cols-12 gap-4 text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4 px-2">
+                                        <div className="col-span-8">Description</div>
+                                        <div className="col-span-4 text-right">Amount</div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        {invoice.items.map((item, i) => (
+                                            <div key={i} className="grid grid-cols-12 gap-4 text-sm bg-black/10 p-4 rounded-xl items-center">
+                                                <div className="col-span-8 font-bold text-white">{item.description}</div>
+                                                <div className="col-span-4 text-right font-black text-[#ea580c]">{formatCurrency(item.amount)}</div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+
+                                <div className="flex justify-end pt-4">
+                                    <div className="w-1/2 bg-[#ea580c] p-6 rounded-2xl flex justify-between items-center">
+                                        <span className="text-xs font-black uppercase tracking-widest text-white">Total</span>
+                                        <span className="text-2xl font-black text-white">{formatCurrency(invoice.total)}</span>
+                                    </div>
+                                </div>
+
+                                {invoice.notes && (
+                                    <div className="bg-black/20 p-6 rounded-2xl text-sm border border-white/5">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-[#ea580c] block mb-2">Notes:</span>
+                                        <p className="text-zinc-400 leading-relaxed font-medium">{invoice.notes}</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
 
                 <div className="space-y-6">
@@ -267,7 +290,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                <DialogContent className="sm:max-w-[500px] bg-[#0c2a27] border-white/5 text-white rounded-3xl backdrop-blur-2xl">
+                <DialogContent className="max-w-[95vw] sm:max-w-[500px] w-full bg-[#0c2a27] border-white/5 text-white rounded-2xl md:rounded-3xl backdrop-blur-2xl overflow-y-auto max-h-[90vh]">
                     <DialogHeader>
                         <DialogTitle className="font-heading uppercase tracking-widest text-sm text-white">Edit Invoice</DialogTitle>
                         <DialogDescription className="text-zinc-500 text-xs">
@@ -295,37 +318,55 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                                 className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm"
                             />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="amount" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Amount ($)</Label>
+                                <Label htmlFor="amount" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Subtotal ($)</Label>
                                 <Input
                                     id="amount"
                                     type="number"
                                     step="0.01"
-                                    value={editForm.total || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, total: parseFloat(e.target.value) })}
+                                    value={editForm.subtotal || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, subtotal: parseFloat(e.target.value) })}
                                     className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm"
                                     required
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="dueDate" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Due Date</Label>
+                                <Label htmlFor="taxRate" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Tax (%)</Label>
                                 <Input
-                                    id="dueDate"
-                                    type="date"
-                                    value={editForm.dueDate?.split('T')[0] || ''}
-                                    onChange={(e) => setEditForm({ ...editForm, dueDate: new Date(e.target.value).toISOString() })}
-                                    className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm invert"
+                                    id="taxRate"
+                                    type="number"
+                                    step="0.1"
+                                    value={editForm.taxRate || ''}
+                                    onChange={(e) => setEditForm({ ...editForm, taxRate: parseFloat(e.target.value) })}
+                                    className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm"
                                     required
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1 opacity-50">Total Est.</Label>
+                                <div className="h-11 flex items-center px-4 bg-black/40 border border-white/5 rounded-xl text-sm font-mono text-[#ea580c]">
+                                    {formatCurrency((editForm.subtotal || 0) * (1 + (editForm.taxRate || 0) / 100))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="dueDate" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Due Date</Label>
+                            <Input
+                                id="dueDate"
+                                type="date"
+                                value={editForm.dueDate?.split('T')[0] || ''}
+                                onChange={(e) => setEditForm({ ...editForm, dueDate: new Date(e.target.value).toISOString() })}
+                                className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm invert"
+                                required
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="description" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Description</Label>
                             <Input
                                 id="description"
                                 value={editForm.items?.[0]?.description || ''}
-                                onChange={(e) => setEditForm({ ...editForm, items: [{ ...editForm.items?.[0], description: e.target.value, id: editForm.items?.[0]?.id || '', quantity: 1, rate: editForm.total || 0, amount: editForm.total || 0 }] })}
+                                onChange={(e) => setEditForm({ ...editForm, items: [{ ...editForm.items?.[0], description: e.target.value, id: editForm.items?.[0]?.id || '', quantity: 1, rate: editForm.subtotal || 0, amount: editForm.subtotal || 0 }] })}
                                 className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm"
                             />
                         </div>

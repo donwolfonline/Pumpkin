@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/shared/status-badge';
 export const columns: ColumnDef<Contact>[] = [
     {
         accessorKey: 'name',
+        accessorFn: (row) => row.name || `${row.firstName} ${row.lastName}`,
         header: ({ column }) => {
             return (
                 <Button
@@ -63,8 +64,7 @@ export const columns: ColumnDef<Contact>[] = [
     },
     {
         id: 'actions',
-        cell: ({ row }) => {
-            const contact = row.original;
+        cell: () => {
             return (
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary">

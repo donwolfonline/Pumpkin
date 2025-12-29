@@ -5,6 +5,7 @@ export interface Contact {
     id: string;
     firstName: string;
     lastName: string;
+    name: string; // Full name for easy searching
     email: string;
     phone?: string;
     company?: string;

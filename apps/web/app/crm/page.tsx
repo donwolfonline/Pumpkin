@@ -11,6 +11,8 @@ import { EmptyState } from '@/components/shared/empty-state';
 import Link from 'next/link';
 
 import { Contact } from '@/lib/types/crm';
+import { getContacts, setContacts } from '@/lib/storage-utils';
+import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 
 import {
     Dialog,
@@ -24,29 +26,27 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
 export default function CRMPage() {
-    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [contacts, setContactsList] = useState<Contact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+    const { toast } = usePumpkinToast();
+
     // Load contacts on mount
     useEffect(() => {
-        const saved = localStorage.getItem('pumpkin_contacts');
-        if (saved) {
-            try {
-                setContacts(JSON.parse(saved));
-            } catch (error) {
-                console.error('Failed to load contacts:', error);
-            }
-        }
-        setIsLoading(false);
+        const loadData = () => {
+            setContactsList(getContacts());
+            setIsLoading(false);
+        };
+        const timer = setTimeout(loadData, 0);
+        return () => clearTimeout(timer);
     }, []);
 
-    // Save contacts to localStorage whenever they change
-    useEffect(() => {
-        if (!isLoading && contacts.length >= 0) {
-            localStorage.setItem('pumpkin_contacts', JSON.stringify(contacts));
-        }
-    }, [contacts, isLoading]);
+    // Helper to update both state and storage
+    const updateContacts = (newContacts: Contact[]) => {
+        setContactsList(newContacts);
+        setContacts(newContacts);
+    };
 
     const handleCreateContact = (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +58,7 @@ export default function CRMPage() {
             id: crypto.randomUUID(),
             firstName: nameParts[0] || '',
             lastName: nameParts.slice(1).join(' ') || '',
+            name: fullName,
             email: formData.get('email') as string,
             company: formData.get('role') as string || '',
             status: 'active',
@@ -66,12 +67,10 @@ export default function CRMPage() {
             lastActivity: new Date().toISOString(),
         };
 
-        setContacts(prev => [newContact, ...prev]);
+        updateContacts([newContact, ...contacts]);
         setIsDialogOpen(false);
 
-        setTimeout(() => {
-            alert('Contact added successfully!');
-        }, 100);
+        toast(`${fullName} has been planted in your patch.`, 'success');
     };
 
     const searchKey: string = ""; // Placeholder for search functionality

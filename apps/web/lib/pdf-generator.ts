@@ -9,8 +9,14 @@ export const generatePDF = async (elementId: string, filename: string) => {
 
     try {
         const dataUrl = await toPng(element, {
-            quality: 0.95,
-            backgroundColor: '#051c1c', // Match the dark theme background
+            quality: 1,
+            backgroundColor: '#ffffff',
+            width: 800,
+            height: 1100,
+            style: {
+                transform: 'scale(1)',
+                transformOrigin: 'top left',
+            },
             cacheBust: true,
         });
 

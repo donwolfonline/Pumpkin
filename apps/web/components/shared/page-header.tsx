@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
     title: string;
@@ -43,7 +42,7 @@ export function PageHeader({
                         ))}
                     </nav>
                 )}
-                <h1 className="text-4xl font-bold tracking-tight font-heading text-white glow-orange leading-none">{title}</h1>
+                <h1 className="text-2xl sm:text-4xl font-bold tracking-tight font-heading text-white glow-orange leading-none">{title}</h1>
                 {description && (
                     <p className="text-sm font-medium text-zinc-400 max-w-xl">{description}</p>
                 )}
