@@ -210,19 +210,19 @@ This project is optimized for deployment on **Vercel** using **Turborepo**.
 #### 1. Setup Vercel Project
 
 - Connect your GitHub repository to Vercel.
-- Vercel will detect the Turborepo monorepo automatically.
+- **IMPORTANT**: During setup, set the **Root Directory** to `apps/web`. Vercel will automatically detect the monorepo and run the install command from the project root.
 
-#### 2. Configure Web App (Frontend)
+#### 2. Configure Vercel Settings
 
-For the frontend application (`apps/web`):
+If Vercel asks for build settings or if you need to override them:
 
-- **Root Directory**: `apps/web` (or `.` if using Turborepo integration)
-- **Build Command**: `cd ../.. && npx turbo run build --filter=web`
+- **Framework Preset**: `Next.js` (Vercel will detect this automatically if Root Directory is `apps/web`)
+- **Build Command**: `npx turbo run build --filter=web`
 - **Output Directory**: `.next`
-- **Install Command**: `cd ../.. && npm install`
+- **Install Command**: `npm install` (Vercel runs this from the monorepo root automatically)
 
-> [!TIP]
-> Alternatively, keep the **Root Directory** as `.` and set the **Build Command** to `npx turbo run build --filter=web` and **Output Directory** to `apps/web/.next`.
+> [!NOTE]
+> By setting the Root Directory to `apps/web`, Vercel scans that specific folder for `next` and satisfies the "Next.js version detected" check, while still using the root workspace for dependencies.
 
 #### 3. Environment Variables
 
