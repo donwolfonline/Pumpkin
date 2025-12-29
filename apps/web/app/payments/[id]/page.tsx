@@ -107,16 +107,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
         setIsGeneratingPDF(true);
         try {
-            // Temporarily show the template if it's hidden to ensure it's in the DOM
-            const wasShowing = showPreview;
-            if (!wasShowing) setShowPreview(true);
-
-            // Wait for render
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for render of off-screen container
+            await new Promise(resolve => setTimeout(resolve, 300));
 
             await generatePDF('invoice-content', `invoice-${invoice.invoiceNumber}.pdf`);
-
-            if (!wasShowing) setShowPreview(false);
         } catch (error) {
             console.error('Failed to generate PDF:', error);
             toast('Failed to generate PDF. Please try again.', 'error');
@@ -302,6 +296,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             </CardContent>
                         </Card>
                     )}
+                </div>
+
+                {/* Off-screen capture container */}
+                <div className="absolute left-[-9999px] top-0 pointer-events-none">
+                    <div id="invoice-content" className="bg-white w-[800px]">
+                        <InvoiceTemplate invoice={invoice} branding={branding} />
+                    </div>
                 </div>
 
                 <div className="space-y-6">
