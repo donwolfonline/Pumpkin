@@ -48,6 +48,21 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
           };
         }
 
+        const databaseUrl = configService.get('DATABASE_URL') || configService.get('POSTGRES_URL');
+
+        if (databaseUrl) {
+          return {
+            type: 'postgres',
+            url: databaseUrl,
+            entities: [__dirname + '/**/*.entity{.ts,.js}'],
+            synchronize: true, // Auto-schema sync for easy deployment
+            logging: false, // Reduce noise in prod
+            ssl: {
+              rejectUnauthorized: false
+            }
+          };
+        }
+
         return {
           type: 'postgres',
           host: configService.get('DATABASE_HOST'),
@@ -58,6 +73,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get('NODE_ENV') === 'development',
           logging: configService.get('NODE_ENV') === 'development',
+          ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
         };
       },
     }),
