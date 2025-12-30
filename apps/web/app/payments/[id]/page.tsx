@@ -38,7 +38,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         const invoices = getInvoices();
         const foundInvoice = invoices.find((inv: Invoice) => inv.id === id);
         setInvoice(foundInvoice || null);
-        setBranding(getOrganizationBranding());
+
+        if (foundInvoice) {
+            setBranding(foundInvoice.brandingSnapshot || getOrganizationBranding());
+        } else {
+            setBranding(getOrganizationBranding());
+        }
     }, [id]);
 
     const handleMarkAsPaid = () => {
@@ -107,9 +112,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
         setIsGeneratingPDF(true);
         try {
-            // Wait for render of off-screen container
-            await new Promise(resolve => setTimeout(resolve, 300));
-
             await generatePDF('invoice-content', `invoice-${invoice.invoiceNumber}.pdf`);
         } catch (error) {
             console.error('Failed to generate PDF:', error);
@@ -168,6 +170,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             taxRate: currentTaxRate,
             tax: tax,
             total: total,
+            brandingSnapshot: getOrganizationBranding(),
             history: [{
                 id: crypto.randomUUID(),
                 action: 'updated',

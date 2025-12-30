@@ -132,7 +132,7 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
             const wasShowing = showPreview;
             if (!wasShowing) setShowPreview(true);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
             await generatePDF('contract-content', `contract-${contract.contractNumber.toLowerCase()}.pdf`);
 
             if (!wasShowing) setShowPreview(false);

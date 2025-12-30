@@ -35,8 +35,10 @@ export default function SignProposalPage({ params }: { params: Promise<{ id: str
             if (data) {
                 setProposal(data.proposal);
                 setStorageKey(data.storageKey);
-                const orgBranding = getOrganizationBranding();
-                setBranding(orgBranding);
+
+                // Use the snapshot from the proposal if it exists, otherwise get from local storage
+                const brandingData = data.proposal.brandingSnapshot || getOrganizationBranding();
+                setBranding(brandingData);
 
                 // Check if already signed
                 const isAlreadySigned = data.proposal.status === 'signed';

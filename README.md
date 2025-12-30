@@ -12,6 +12,7 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 - **How It Works** - Interactive 4-step workflow visualization (Onboard, Propose, Execute, Collect)
 - **CRM** - Manage contacts, leads, and deals with a mobile-friendly interface
 - **Proposals & Contracts** - Create and send professional documents with dynamic templates and dual-signatures
+- **Robust PDF Engine** - Client-side high-fidelity PDF generation with reliable cross-browser download support
 - **Scheduling** - Integrated calendar and appointment management
 - **Payments & Billing** - Multi-tiered subscription plans, invoicing, and instant settlements
 - **Security & Status** - Real-time system monitoring and bank-grade data encryption

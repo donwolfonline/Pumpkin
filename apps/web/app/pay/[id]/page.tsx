@@ -36,7 +36,10 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
             if (data) {
                 setInvoice(data.invoice);
                 setStorageKey(data.storageKey);
-                setBranding(getOrganizationBranding());
+
+                // Use the snapshot from the invoice if it exists, otherwise get from local storage
+                const brandingData = data.invoice.brandingSnapshot || getOrganizationBranding();
+                setBranding(brandingData);
 
                 if (data.invoice.status === 'paid') {
                     setStep('success');
@@ -302,7 +305,6 @@ export default function PayPage({ params }: { params: Promise<{ id: string }> })
                                 onClick={async () => {
                                     if (!invoice) return;
                                     try {
-                                        await new Promise(resolve => setTimeout(resolve, 300));
                                         await generatePDF('signed-invoice-download', `invoice-${invoice.invoiceNumber}.pdf`);
                                         toast("Invoice downloaded successfully", "success");
                                     } catch (error) {

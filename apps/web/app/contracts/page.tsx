@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 import { DashboardShell } from '@/components/dashboard-shell';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from '@/components/ui/data-table';
@@ -10,7 +9,7 @@ import { Plus, FileSignature, ChevronRight, FileCheck, CircleDollarSign, Clock }
 import { EmptyState } from '@/components/shared/empty-state';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
-import { getContracts, setContracts } from '@/lib/storage-utils';
+import { getContracts, setContracts, getOrganizationBranding } from '@/lib/storage-utils';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -24,15 +23,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
 export default function ContractsPage() {
-    const [contracts, setContractsList] = useState<Contract[]>([]);
-    const [isMounted, setIsMounted] = useState(false);
+    const [contracts, setContractsList] = useState<Contract[]>(() => {
+        if (typeof window !== 'undefined') return getContracts();
+        return [];
+    });
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-    useEffect(() => {
-        const contractsData = getContracts();
-        setContractsList(contractsData);
-        setIsMounted(true);
-    }, []);
 
     const handleCreateContract = (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,6 +59,7 @@ export default function ContractsPage() {
             signatures: [],
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            brandingSnapshot: getOrganizationBranding(),
         };
 
         const updated = [newContract, ...contracts];
@@ -124,16 +120,6 @@ export default function ContractsPage() {
             )
         }
     ];
-
-    if (!isMounted) {
-        return (
-            <DashboardShell>
-                <div className="h-64 flex items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
-                </div>
-            </DashboardShell>
-        );
-    }
 
     return (
         <DashboardShell>

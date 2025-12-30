@@ -10,6 +10,7 @@ import { Check, Loader2, ShieldCheck, FileText, CreditCard, Fingerprint, Lock, A
 import { Logo } from "@/components/branding/logo";
 import { usePumpkinToast } from '../../../components/ui/pumpkin-toast';
 import { getContractPublicly, updateContractByKey, getOrganizationBranding } from '../../../lib/storage-utils';
+import { generatePDF } from '../../../lib/pdf-generator';
 import { ContractTemplate } from '../../../components/templates/contract-template';
 import { Contract } from '../../../lib/types/contract';
 import { OrganizationBranding, DEFAULT_BRANDING } from '../../../lib/types/organization-settings';
@@ -28,6 +29,7 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
     const [clientSignature, setClientSignature] = useState('');
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'apple_pay'>('card');
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
     const [processingStage, setProcessingStage] = useState<'auth' | 'verify' | 'settle'>('auth');
 
     useEffect(() => {
@@ -36,8 +38,10 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
             if (data) {
                 setContract(data.contract);
                 setStorageKey(data.storageKey);
-                const orgBranding = getOrganizationBranding();
-                setBranding(orgBranding);
+
+                // Use the snapshot from the contract if it exists, otherwise get from local storage
+                const brandingData = data.contract.brandingSnapshot || getOrganizationBranding();
+                setBranding(brandingData);
 
                 // Check if contract is already signed and active
                 const isAlreadySigned = data.contract.status === 'active' || data.contract.status === 'signed';
@@ -96,6 +100,21 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
             setContract(updatedContract);
             setStep('success');
             toast("Contract signed and payment authorized!", "success");
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!contract) return;
+        setIsGeneratingPDF(true);
+        try {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await generatePDF('signed-contract-download', `contract-${contract.contractNumber}.pdf`);
+            toast("Agreement downloaded successfully", "success");
+        } catch (error) {
+            console.error('Failed to generate PDF:', error);
+            toast("Failed to download PDF", "error");
+        } finally {
+            setIsGeneratingPDF(false);
         }
     };
 
@@ -379,80 +398,28 @@ export default function SignPage({ params }: { params: Promise<{ id: string }> }
                                 A confirmation and copy of the signed agreement has been sent to your email.
                             </p>
                             <Button
-                                onClick={() => {
-                                    // Trigger print dialog with styled contract template
-                                    const printWindow = window.open('', '_blank');
-                                    if (printWindow) {
-                                        const contractElement = document.getElementById('signed-contract-download');
-                                        if (contractElement) {
-                                            // Get all stylesheets from the current page
-                                            const styles = Array.from(document.styleSheets)
-                                                .map(styleSheet => {
-                                                    try {
-                                                        return Array.from(styleSheet.cssRules)
-                                                            .map(rule => rule.cssText)
-                                                            .join('\n');
-                                                    } catch {
-                                                        return '';
-                                                    }
-                                                })
-                                                .join('\n');
-
-                                            printWindow.document.write(`
-                                                <!DOCTYPE html>
-                                                <html>
-                                                <head>
-                                                    <meta charset="UTF-8">
-                                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                                    <title>${contract.title} - Signed Agreement</title>
-                                                    <script src="https://cdn.tailwindcss.com"></script>
-                                                    <style>
-                                                        @media print {
-                                                            @page { 
-                                                                margin: 1cm;
-                                                                size: A4;
-                                                            }
-                                                            body { 
-                                                                margin: 0;
-                                                                -webkit-print-color-adjust: exact;
-                                                                print-color-adjust: exact;
-                                                            }
-                                                        }
-                                                        body { 
-                                                            margin: 0; 
-                                                            padding: 20px;
-                                                            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                                                            background: white;
-                                                        }
-                                                        ${styles}
-                                                    </style>
-                                                </head>
-                                                <body>
-                                                    <div class="flex justify-center">
-                                                        ${contractElement.innerHTML}
-                                                    </div>
-                                                </body>
-                                                </html>
-                                            `);
-                                            printWindow.document.close();
-
-                                            // Wait for Tailwind to load before printing
-                                            setTimeout(() => {
-                                                printWindow.print();
-                                            }, 1000);
-                                        }
-                                    }
-                                }}
+                                onClick={handleDownloadPDF}
+                                disabled={isGeneratingPDF}
                                 variant="default"
                                 className="bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest text-[10px] h-12 px-8 rounded-xl"
                             >
-                                <FileText className="mr-2 h-4 w-4" /> Download Signed Agreement
+                                {isGeneratingPDF ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Generating...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FileText className="mr-2 h-4 w-4" /> Download Signed Agreement
+                                    </>
+                                )}
                             </Button>
                         </div>
 
                         {/* Hidden contract template for download/print */}
-                        <div id="signed-contract-download" className="hidden">
-                            <ContractTemplate contract={contract} branding={branding} />
+                        <div className="fixed left-[-9999px] top-0">
+                            <div id="signed-contract-download" className="w-[800px] bg-white">
+                                <ContractTemplate contract={contract} branding={branding} />
+                            </div>
                         </div>
                     </div>
                 )}

@@ -1,3 +1,5 @@
+import { OrganizationBranding } from './organization-settings';
+
 export type ContractStatus = 'draft' | 'pending' | 'signed' | 'active' | 'completed' | 'terminated' | 'expired';
 
 export interface PaymentSchedule {
@@ -44,4 +46,5 @@ export interface Contract {
     createdAt: string; // ISO Date
     updatedAt: string; // ISO Date
     notes?: string;
+    brandingSnapshot?: OrganizationBranding;
 }

@@ -1,3 +1,5 @@
+import { OrganizationBranding } from './organization-settings';
+
 export type ProposalStatus = 'draft' | 'sent' | 'viewed' | 'pending_signatures' | 'signed' | 'accepted' | 'declined';
 
 export interface ProposalSignature {
@@ -25,4 +27,5 @@ export interface Proposal {
     signatures?: ProposalSignature[]; // Track both provider and client signatures
     createdBy?: string;
     updatedAt?: string;
+    brandingSnapshot?: OrganizationBranding;
 }

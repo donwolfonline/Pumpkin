@@ -98,7 +98,7 @@ export default function ProposalDetailPage({ params }: { params: Promise<{ id: s
             const wasShowing = showPreview;
             if (!wasShowing) setShowPreview(true);
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
             await generatePDF('proposal-content', `proposal-${proposal.title.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 
             if (!wasShowing) setShowPreview(false);

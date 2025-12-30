@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/shared/empty-state';
 import Link from 'next/link';
 import { InvoiceStatusBadge } from '@/components/shared/status-badge';
 import { formatCurrency } from '@/lib/utils';
-import { getInvoices, setInvoices, ensureContactExists } from '@/lib/storage-utils';
+import { getInvoices, setInvoices, ensureContactExists, getOrganizationBranding } from '@/lib/storage-utils';
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 
 import {
@@ -84,6 +84,7 @@ export default function PaymentsPage() {
             taxRate: 0,
             tax: 0,
             total: parseFloat(formData.get('amount') as string) || 0,
+            brandingSnapshot: getOrganizationBranding(),
             history: [{
                 id: crypto.randomUUID(),
                 action: 'created',

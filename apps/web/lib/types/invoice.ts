@@ -1,3 +1,5 @@
+import { OrganizationBranding } from './organization-settings';
+
 export type InvoiceStatus = 'draft' | 'pending' | 'paid' | 'overdue' | 'canceled';
 
 export interface InvoiceItem {
@@ -39,6 +41,7 @@ export interface Invoice {
     notes?: string;
     terms?: string; // Custom terms for this invoice
     updatedAt?: string; // ISO Date
+    brandingSnapshot?: OrganizationBranding; // Snapshot of OrganizationBranding for public views
     history?: InvoiceHistoryEvent[];
 }
 

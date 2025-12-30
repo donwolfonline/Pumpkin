@@ -9,7 +9,7 @@ import { Plus, FileEdit, ChevronRight } from 'lucide-react';
 import { EmptyState } from '@/components/shared/empty-state';
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
-import { getProposals, setProposals, getContacts } from '@/lib/storage-utils';
+import { getProposals, setProposals, getContacts, getOrganizationBranding } from '@/lib/storage-utils';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -53,6 +53,7 @@ export default function ProposalsPage() {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             validUntil: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days
+            brandingSnapshot: getOrganizationBranding(),
         };
 
         const updated = [newProposal, ...proposals];
@@ -94,8 +95,8 @@ export default function ProposalsPage() {
                         <Badge
                             variant="default"
                             className={`rounded-full uppercase text-[8px] font-black px-2 sm:px-3 py-1 border text-nowrap ${isFullySigned
-                                    ? 'bg-green-500/10 border-green-500/20 text-green-500'
-                                    : 'bg-white/5 border-white/10 text-zinc-400'
+                                ? 'bg-green-500/10 border-green-500/20 text-green-500'
+                                : 'bg-white/5 border-white/10 text-zinc-400'
                                 }`}
                         >
                             {isFullySigned ? (
