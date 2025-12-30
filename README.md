@@ -203,58 +203,33 @@ npm run migration:revert
 
 ## Deployment
 
-### Deploying to Vercel
+### ⚡️ Quick Deploy (Recommended)
 
-This project is optimized for deployment on **Vercel** using **Turborepo**.
+Deploy the entire platform in minutes using these pre-configured buttons.
 
-#### 1. Setup Vercel Project
+**Step 1: Deploy the Backend (API)**  
+Click this button first to set up your database and API.  
+[![Deploy API with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdonwolfonline%2FPumpkin&root-directory=apps%2Fapi&project-name=pumpkin-api&framework=other&buildCommand=npm%20install%20%26%26%20npm%20run%20build&outputDirectory=dist&env=DATABASE_URL,FRONTEND_URL,JWT_ACCESS_SECRET,JWT_REFRESH_SECRET)
 
-- Connect your GitHub repository to Vercel.
-- Vercel will automatically detect the **Turborepo** structure.
+**Step 2: Deploy the Frontend (Web)**  
+After the API is deployed, copy its URL and use it here.  
+[![Deploy Web with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdonwolfonline%2FPumpkin&root-directory=apps%2Fweb&project-name=pumpkin-web&framework=nextjs&env=NEXT_PUBLIC_API_URL)
 
-#### 2. Configure Settings
+---
 
-In the Vercel Dashboard, ensure these settings are selected (usually defaults):
+### Manual Deployment
 
-- **Framework Preset**: `Turborepo` or `Next.js`
-- **Root Directory**: `.` (The project root)
-- **Build Command**: `npx turbo run build`
-- **Output Directory**: `apps/web/.next` (You may need to override this in the 'Build & Development' settings)
+#### 1. Database Setup
 
-> [!TIP]
-> For the most reliable deployment, set the **Root Directory** to `.` and Vercel will handle the installation and build for all workspaces.
+We recommend **Neon** (Serverless Postgres). You can add it directly from the Vercel Marketplace during the API deployment detailed above.
 
-#### 3. Environment Variables
+#### 2. Environment Variables Guide
 
-Ensure the following environment variables are set in the Vercel Dashboard:
+When prompted by the deploy buttons:
 
 | Variable | Description |
 | :--- | :--- |
-| `NEXT_PUBLIC_API_URL` | The production URL of your NestJS API (e.g., `https://api.yourdomain.com/api`) |
-| `DATABASE_URL` | Production PostgreSQL connection string (if using Vercel Postgres or external DB) |
-| `NEXTAUTH_SECRET` | Secret for authentication |
-
-#### 4. Deploying the API (Backend)
-
-While Next.js is hosted on Vercel, it is recommended to host the **NestJS API** on a platform that supports persistent processes or specialized serverless runners:
-
-- **Options**: [Railway](https://railway.app), [Render](https://render.com), [Fly.io](https://fly.io), or [AWS App Runner](https://aws.amazon.com/apprunner/).
-- **Build Command**: `npm run build --workspace=api`
-- **Start Command**: `npm run start:prod --workspace=api`
-
-### Production Checklist
-
-- [ ] Set `NODE_ENV` to `production`.
-- [ ] Configure production database migrations.
-- [ ] Ensure all API endpoints used by the frontend point to the production API URL.
-- [ ] Set up Stripe production keys if applicable.
-
-## Troubleshooting
-
-- **Port 4000 already in use**: This is a common issue if a previous backend process didn't terminate correctly. Find the process and kill it: `lsof -i :4000` then `kill -9 <PID>`.
-- **Database Connection Refused**: Ensure Docker is running and the database container is healthy: `docker ps`.
-- **Turbo Lock Issues**: If you see `Unable to acquire lock`, ensure no other instances of the dev server are running. You may need to manually delete `apps/web/.next/dev/lock`.
-
-## License
-
-Proprietary - All rights reserved
+| `DATABASE_URL` | Your Postgres connection string (from Neon/Vercel) |
+| `FRONTEND_URL` | The URL of your Web deployment (e.g., `https://pumpkin-web.vercel.app`) |
+| `NEXT_PUBLIC_API_URL` | The URL of your API deployment (e.g., `https://pumpkin-api.vercel.app`) |
+| `JWT_SECRETS` | Generate secure random strings for Access/Refresh secrets |
