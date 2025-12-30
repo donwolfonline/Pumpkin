@@ -10,8 +10,53 @@ import { Button } from '@/components/ui/button';
 import { Download, Plus, Loader2 } from 'lucide-react';
 import { useUser } from '@/hooks/use-user';
 import { api } from '@/lib/api';
-import { getSubscriptionStatus } from '@/lib/subscription-utils';
+import { getSubscriptionStatus, getTrialTimeRemaining } from '@/lib/subscription-utils';
 import type { ChartDataPoint } from '@/lib/analytics-utils';
+
+// Live Trial Countdown Component
+function TrialCountdown() {
+    const [timeRemaining, setTimeRemaining] = useState(getTrialTimeRemaining());
+
+    useEffect(() => {
+        // Update every minute
+        const interval = setInterval(() => {
+            setTimeRemaining(getTrialTimeRemaining());
+        }, 60000); // 60 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const isUrgent = timeRemaining.days <= 3;
+
+    // Show hours when under 3 days
+    if (timeRemaining.days < 3) {
+        const totalHours = timeRemaining.days * 24 + timeRemaining.hours;
+        return (
+            <p className={`text-base font-bold leading-tight ${isUrgent ? 'text-red-400' : 'text-primary'}`}>
+                {totalHours}
+                <span className="text-xs ml-1 opacity-75">
+                    {totalHours === 1 ? 'Hour' : 'Hours'}
+                </span>
+                {timeRemaining.minutes > 0 && (
+                    <span className="text-[10px] ml-1 opacity-60">
+                        {timeRemaining.minutes}m
+                    </span>
+                )}
+            </p>
+        );
+    }
+
+    // Show days when 3+ days remaining
+    return (
+        <p className={`text-base font-bold leading-tight ${isUrgent ? 'text-red-400' : 'text-primary'}`}>
+            {timeRemaining.days}
+            <span className="text-xs ml-1 opacity-75">
+                {timeRemaining.days === 1 ? 'Day' : 'Days'}
+            </span>
+        </p>
+    );
+}
+
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -105,7 +150,7 @@ export default function DashboardPage() {
                         </p>
                     </div>
 
-                    {/* Trial/Billing Counter - Redesigned */}
+                    {/* Trial/Billing Counter - Redesigned with Live Countdown */}
                     {subscriptionStatus.plan === 'free' && (
                         <div className={`group relative overflow-hidden rounded-xl border transition-all hover:scale-[1.02] cursor-pointer ${subscriptionStatus.daysRemaining <= 3
                             ? 'bg-red-950/30 border-red-500/30 hover:border-red-500/50 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]'
@@ -124,13 +169,7 @@ export default function DashboardPage() {
                                         <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-500 mb-0">
                                             {subscriptionStatus.status === 'expired' ? 'Trial Ended' : 'Free Trial'}
                                         </p>
-                                        <p className={`text-base font-bold leading-tight ${subscriptionStatus.daysRemaining <= 3 ? 'text-red-400' : 'text-primary'
-                                            }`}>
-                                            {subscriptionStatus.daysRemaining}
-                                            <span className="text-xs ml-1 opacity-75">
-                                                {subscriptionStatus.daysRemaining === 1 ? 'Day' : 'Days'}
-                                            </span>
-                                        </p>
+                                        <TrialCountdown />
                                     </div>
                                 </div>
                             </div>

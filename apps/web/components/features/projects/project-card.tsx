@@ -1,3 +1,5 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Project } from '@/lib/types/project';
 import { StatusBadge } from '@/components/shared/status-badge';
@@ -6,12 +8,15 @@ import { Progress } from '@/components/ui/progress';
 import { Calendar, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils'; // Assumes I implemented formatCurrency in utils
+import { useRouter } from 'next/navigation';
 
 interface ProjectCardProps {
     project: Project;
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
+    const router = useRouter();
+
     const statusVariantMap: Record<string, "success" | "warning" | "error" | "secondary"> = {
         active: 'success',
         completed: 'secondary', // or logic for completed
@@ -19,8 +24,16 @@ export function ProjectCard({ project }: ProjectCardProps) {
         archived: 'secondary'
     };
 
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Prevent navigation if clicking on the menu button
+        if ((e.target as HTMLElement).closest('button')) {
+            return;
+        }
+        router.push(`/projects/${project.id}`);
+    };
+
     return (
-        <Card className="hover:shadow-md transition-shadow">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={handleCardClick}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="space-y-1">
                     <CardTitle className="text-base font-semibold leading-tight hover:text-primary cursor-pointer truncate">

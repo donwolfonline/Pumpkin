@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardShell } from '@/components/dashboard-shell';
 import { PageHeader } from '@/components/shared/page-header';
 import { ProjectCard } from '@/components/features/projects/project-card';
-import { Project } from '@/lib/types/project';
+import { Project, ProjectStatus, ProjectPriority } from '@/lib/types/project';
 import { Plus, ListFilter, LayoutGrid, List as ListIcon, GitBranch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,16 +14,24 @@ import { getUserData, setUserData } from '@/lib/storage-utils';
 import { ProjectDialog } from '@/components/features/projects/project-dialog';
 
 export default function ProjectsPage() {
-    const [projects, setProjects] = useState<Project[]>(() => getUserData<Project[]>('pumpkin_projects') || []);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    useEffect(() => {
+        const storedProjects = getUserData<Project[]>('pumpkin_projects') || [];
+        setProjects(storedProjects);
+        setIsLoading(false);
+    }, []);
 
     const handleCreateProject = (projectData: Partial<Project>) => {
         const newProject: Project = {
             id: crypto.randomUUID(),
             name: projectData.name!,
             client: projectData.client!,
-            status: projectData.status as any, // ProjectStatus
-            priority: projectData.priority as any, // ProjectPriority
+            clientEmail: projectData.clientEmail,
+            status: projectData.status as ProjectStatus,
+            priority: projectData.priority as ProjectPriority,
             progress: 0,
             dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             createdAt: new Date().toISOString(),
@@ -79,7 +87,13 @@ export default function ProjectsPage() {
                 </div>
             </div>
 
-            {projects.length > 0 ? (
+            {isLoading ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-[200px] rounded-xl border border-white/5 bg-white/5 animate-pulse" />
+                    ))}
+                </div>
+            ) : projects.length > 0 ? (
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {projects.map(project => (
                         <ProjectCard key={project.id} project={project} />

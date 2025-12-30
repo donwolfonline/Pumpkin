@@ -12,18 +12,34 @@ const TRIAL_DAYS = 14;
 const BILLING_CYCLE_DAYS = 30;
 
 /**
- * Get the number of days remaining in the trial period
+ * Get the time remaining in the trial period
  */
-export function getTrialDaysRemaining(): number {
+export function getTrialTimeRemaining(): { days: number; hours: number; minutes: number; totalDays: number } {
     const registrationDate = getUserData<string>('registration_date');
-    if (!registrationDate) return TRIAL_DAYS; // Default for new users
+    if (!registrationDate) return { days: TRIAL_DAYS, hours: 0, minutes: 0, totalDays: TRIAL_DAYS }; // Default for new users
 
     const regDate = new Date(registrationDate);
     const now = new Date();
-    const daysSinceRegistration = Math.floor((now.getTime() - regDate.getTime()) / (1000 * 60 * 60 * 24));
-    const daysRemaining = TRIAL_DAYS - daysSinceRegistration;
+    const trialEndDate = new Date(regDate.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
-    return Math.max(0, daysRemaining);
+    const timeRemaining = trialEndDate.getTime() - now.getTime();
+
+    if (timeRemaining <= 0) {
+        return { days: 0, hours: 0, minutes: 0, totalDays: 0 };
+    }
+
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+
+    return { days, hours, minutes, totalDays: days };
+}
+
+/**
+ * Get the number of days remaining in the trial period (legacy - for backwards compatibility)
+ */
+export function getTrialDaysRemaining(): number {
+    return getTrialTimeRemaining().totalDays;
 }
 
 /**

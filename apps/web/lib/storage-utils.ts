@@ -475,6 +475,68 @@ export function getContractsForClient(clientEmail: string): Contract[] {
 }
 
 /**
+ * Scans ALL localStorage keys to find projects for a specific client email.
+ */
+export function getProjectsForClient(clientEmail: string): Project[] {
+    if (typeof window === 'undefined' || !clientEmail) return [];
+
+    const results: Project[] = [];
+    const seenIds = new Set<string>();
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && /_pumpkin_projects/.test(key)) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const projects = JSON.parse(data) as Project[];
+                    projects.forEach(p => {
+                        if (p.clientEmail?.toLowerCase() === clientEmail.toLowerCase() && !seenIds.has(p.id)) {
+                            results.push(p);
+                            seenIds.add(p.id);
+                        }
+                    });
+                } catch {
+                    continue;
+                }
+            }
+        }
+    }
+    return results;
+}
+
+/**
+ * Scans ALL localStorage keys to find proposals for a specific client email.
+ */
+export function getProposalsForClient(clientEmail: string): Proposal[] {
+    if (typeof window === 'undefined' || !clientEmail) return [];
+
+    const results: Proposal[] = [];
+    const seenIds = new Set<string>();
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && /_pumpkin_proposals/.test(key)) {
+            const data = localStorage.getItem(key);
+            if (data) {
+                try {
+                    const proposals = JSON.parse(data) as Proposal[];
+                    proposals.forEach(p => {
+                        if (p.clientEmail?.toLowerCase() === clientEmail.toLowerCase() && !seenIds.has(p.id)) {
+                            results.push(p);
+                            seenIds.add(p.id);
+                        }
+                    });
+                } catch {
+                    continue;
+                }
+            }
+        }
+    }
+    return results;
+}
+
+/**
  * Scans for "orphan" data in LocalStorage (data not belonging to the current user).
  * This helps recover data if the user ID changed or if they were using a guest session.
  * @param filter - Optional filters to ensure we only find data relevant to THIS user.

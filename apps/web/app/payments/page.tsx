@@ -129,9 +129,15 @@ export default function PaymentsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleCreateInvoice} className="space-y-6 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="client" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Name</Label>
-                            <Input id="client" name="clientName" placeholder="Acme Corporation" className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm" required />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="client" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Name</Label>
+                                <Input id="client" name="clientName" placeholder="Acme Corporation" className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm" required />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="clientEmail" className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Email</Label>
+                                <Input id="clientEmail" name="clientEmail" type="email" placeholder="client@example.com" className="bg-black/20 border-white/5 rounded-xl h-11 px-4 text-sm" required />
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">

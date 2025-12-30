@@ -11,6 +11,7 @@ import { getUserData } from '@/lib/storage-utils';
 import { ProjectDialog } from '@/components/features/projects/project-dialog';
 import { TaskBoard } from '@/components/features/projects/task-board';
 import { ProjectTimeline } from '@/components/features/projects/project-timeline';
+import { ProjectSettings } from '@/components/features/projects/project-settings';
 import { setUserData } from '@/lib/storage-utils';
 import { Loader2 } from 'lucide-react';
 
@@ -45,6 +46,21 @@ export default function ProjectDetailPage() {
         const projects = getUserData<Project[]>('pumpkin_projects') || [];
         const updatedProjects = projects.map(p => p.id === project.id ? updatedProject : p);
         setUserData('pumpkin_projects', updatedProjects);
+    };
+
+    const handleDeleteProject = () => {
+        if (!project) return;
+
+        const projects = getUserData<Project[]>('pumpkin_projects') || [];
+        const updatedProjects = projects.filter(p => p.id !== project.id);
+        setUserData('pumpkin_projects', updatedProjects);
+
+        // Also delete associated tasks
+        const tasks = getUserData('pumpkin_tasks') || [];
+        const updatedTasks = tasks.filter((t: any) => t.projectId !== project.id);
+        setUserData('pumpkin_tasks', updatedTasks);
+
+        router.push('/projects');
     };
 
     if (isLoading) {
@@ -122,9 +138,11 @@ export default function ProjectDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="settings" className="mt-6">
-                    <div className="rounded-xl border border-white/5 bg-white/5 p-12 text-center">
-                        <p className="text-zinc-500">Project settings coming soon...</p>
-                    </div>
+                    <ProjectSettings
+                        project={project}
+                        onUpdate={handleUpdateProject}
+                        onDelete={handleDeleteProject}
+                    />
                 </TabsContent>
             </Tabs>
         </DashboardShell >

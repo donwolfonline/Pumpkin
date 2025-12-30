@@ -5,6 +5,7 @@ export interface Project {
     id: string;
     name: string;
     client: string;
+    clientEmail?: string;
     status: ProjectStatus;
     priority: ProjectPriority;
     dueDate: string; // ISO Date

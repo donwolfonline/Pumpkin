@@ -15,6 +15,7 @@ export interface Proposal {
     organizationId: string;
     clientId?: string;
     clientName?: string;
+    clientEmail?: string;
     title: string;
     content: unknown;
     status: ProposalStatus;

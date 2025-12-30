@@ -100,7 +100,7 @@ export default function LoginPage() {
                                         <Input
                                             id="email"
                                             type="email"
-                                            placeholder="demo@pumpkin.app"
+                                            placeholder="your@email.com"
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             className="h-14 pl-12 bg-black/20 border-white/10 rounded-2xl focus:ring-primary/50 text-white placeholder:text-zinc-600 transition-all font-medium"

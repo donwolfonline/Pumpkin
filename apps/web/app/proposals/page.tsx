@@ -45,6 +45,7 @@ export default function ProposalsPage() {
             organizationId: 'org_1',
             clientId,
             clientName: client ? (client.name || `${client.firstName} ${client.lastName}`.trim()) : 'Unknown Client',
+            clientEmail: client?.email,
             title: formData.get('title') as string,
             status: 'draft',
             totalAmount: parseFloat(formData.get('amount') as string) || 0,

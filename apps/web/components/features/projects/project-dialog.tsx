@@ -26,6 +26,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSubmit }: Project
     const [formData, setFormData] = useState({
         name: project?.name || '',
         client: project?.client || '',
+        clientEmail: project?.clientEmail || '',
         status: (project?.status || 'active') as ProjectStatus,
         priority: (project?.priority || 'medium') as ProjectPriority,
         budget: project?.budget || 0,
@@ -63,16 +64,29 @@ export function ProjectDialog({ open, onOpenChange, project, onSubmit }: Project
                             required
                         />
                     </div>
-                    <div className="space-y-1">
-                        <Label htmlFor="client" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client</Label>
-                        <Input
-                            id="client"
-                            placeholder="Acme Inc."
-                            className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs focus:ring-primary/20"
-                            value={formData.client}
-                            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                            required
-                        />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                            <Label htmlFor="client" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Name</Label>
+                            <Input
+                                id="client"
+                                placeholder="Acme Inc."
+                                className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs focus:ring-primary/20"
+                                value={formData.client}
+                                onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <Label htmlFor="clientEmail" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Client Email (for Portal)</Label>
+                            <Input
+                                id="clientEmail"
+                                type="email"
+                                placeholder="client@example.com"
+                                className="bg-black/20 border-white/5 rounded-lg h-9 px-3 text-xs focus:ring-primary/20"
+                                value={formData.clientEmail}
+                                onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
+                            />
+                        </div>
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="description" className="text-[9px] font-bold uppercase tracking-widest text-zinc-500 ml-1">Description</Label>

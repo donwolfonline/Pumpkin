@@ -132,7 +132,7 @@ export function Header() {
                         <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest truncate max-w-[100px] text-right">Registered Patch</span>
                     </div>
                     <Avatar className="h-9 w-9 cursor-pointer ring-2 ring-white/5 hover:ring-primary/40 transition-all shadow-lg shadow-black/20">
-                        <AvatarImage src={user?.avatar || ""} alt={fullName} className="object-cover" />
+                        <AvatarImage src={user?.avatar} alt={fullName} className="object-cover" />
                         <AvatarFallback className="bg-primary/20 text-primary font-bold">{initials}</AvatarFallback>
                     </Avatar>
                 </div>
