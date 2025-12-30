@@ -28,7 +28,10 @@ interface DashboardData {
     stats: PortalStats;
 }
 
-export default function ClientDashboardPage() {
+import { Suspense } from 'react';
+
+// Separate component for content to be wrapped in Suspense
+function ClientDashboardContent() {
     const router = useRouter();
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -222,8 +225,8 @@ export default function ClientDashboardPage() {
                                                     </p>
                                                     <Badge
                                                         className={`rounded-full px-5 py-1.5 font-bold text-[10px] uppercase tracking-[0.2em] border-none shadow-lg ${invoice.status === 'paid'
-                                                                ? 'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/5'
-                                                                : 'bg-orange-500/10 text-orange-400 shadow-orange-500/5'
+                                                            ? 'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/5'
+                                                            : 'bg-orange-500/10 text-orange-400 shadow-orange-500/5'
                                                             }`}
                                                     >
                                                         {invoice.status}
@@ -287,8 +290,8 @@ export default function ClientDashboardPage() {
                                                 <div className="text-left lg:text-right space-y-3">
                                                     <Badge
                                                         className={`rounded-full px-5 py-1.5 font-bold text-[10px] uppercase tracking-[0.2em] border-none shadow-lg ${doc.status === 'signed'
-                                                                ? 'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/5'
-                                                                : 'bg-blue-500/10 text-blue-400 shadow-blue-500/5'
+                                                            ? 'bg-emerald-500/10 text-emerald-400 shadow-emerald-500/5'
+                                                            : 'bg-blue-500/10 text-blue-400 shadow-blue-500/5'
                                                             }`}
                                                     >
                                                         {doc.status}
@@ -319,5 +322,19 @@ export default function ClientDashboardPage() {
                 </div>
             </main>
         </div>
+    );
+}
+
+export default function ClientDashboardPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin shadow-[0_0_20px_rgba(249,115,22,0.3)]" />
+                </div>
+            </div>
+        }>
+            <ClientDashboardContent />
+        </Suspense>
     );
 }

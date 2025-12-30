@@ -118,7 +118,6 @@ export default function ContractDetailPage({ params }: { params: Promise<{ id: s
             updatedAt: new Date().toISOString()
         };
 
-        // @ts-expect-error - status type conversion
         updateContractInStorage(updated as any);
         setIsSignDialogOpen(false);
         toast('Contract signed successfully!', 'success');

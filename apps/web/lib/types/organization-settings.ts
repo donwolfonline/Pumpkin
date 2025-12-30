@@ -32,6 +32,7 @@ export interface OrganizationBranding {
         accountNumber: string;
     }[];
     defaultInvoiceTerms?: string;
+    defaultProposalTerms?: string;
 }
 
 export const DEFAULT_BRANDING: OrganizationBranding = {

@@ -4,6 +4,7 @@ import * as React from "react"
 import { toast } from "sonner"
 
 import { Appointment } from "@/lib/types/appointment";
+export type { Appointment };
 
 export interface Notification {
     id: string;

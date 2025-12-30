@@ -86,18 +86,20 @@ export function getRecentActivities(limit = 5): ActivityItem[] {
             description: c.title,
             date: c.createdAt || new Date().toISOString(),
             status: c.status,
-            amount: c.value
+            amount: c.totalValue
         });
 
         if (c.status === 'signed') {
+            // Find latest signature
+            const lastSig = c.signatures?.sort((a, b) => (b.signedAt || '').localeCompare(a.signedAt || ''))[0];
             activities.push({
                 id: c.id + '_signed',
                 type: 'contract',
                 title: 'Contract Signed',
                 description: c.title,
-                date: c.signedAt || c.updatedAt || new Date().toISOString(),
+                date: lastSig?.signedAt || c.updatedAt || new Date().toISOString(),
                 status: 'signed',
-                amount: c.value
+                amount: c.totalValue
             });
         }
     });

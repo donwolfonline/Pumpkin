@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from 'react';
 import { Geist, Geist_Mono, Fredoka } from "next/font/google";
 import "./globals.css";
 
@@ -38,7 +39,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} ${fredoka.variable} antialiased bg-[#051c1c] text-white`}
       >
-        <NavigationLoader />
+        <Suspense fallback={null}>
+          <NavigationLoader />
+        </Suspense>
         <PumpkinToastProvider>
           <NotificationProvider>
             {children}
