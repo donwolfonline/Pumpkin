@@ -16,17 +16,37 @@ import type { ChartDataPoint } from '@/lib/analytics-utils';
 // Live Trial Countdown Component
 function TrialCountdown() {
     const [timeRemaining, setTimeRemaining] = useState(getTrialTimeRemaining());
+    const [mounted, setMounted] = useState(false);
 
+    // Detect client-side mount (intentional for SSR hydration safety)
     useEffect(() => {
-        // Update every minute
+        setMounted(true);
+    }, []);
+
+    // Update countdown every minute
+    useEffect(() => {
+        if (!mounted) return;
+
         const interval = setInterval(() => {
             setTimeRemaining(getTrialTimeRemaining());
         }, 60000); // 60 seconds
 
         return () => clearInterval(interval);
-    }, []);
+    }, [mounted]);
 
     const isUrgent = timeRemaining.days <= 3;
+
+    // Show static placeholder during SSR to prevent hydration mismatch
+    if (!mounted) {
+        return (
+            <p className={`text-base font-bold leading-tight ${isUrgent ? 'text-red-400' : 'text-primary'}`}>
+                {timeRemaining.days}
+                <span className="text-xs ml-1 opacity-75">
+                    {timeRemaining.days === 1 ? 'Day' : 'Days'}
+                </span>
+            </p>
+        );
+    }
 
     // Show hours when under 3 days
     if (timeRemaining.days < 3) {
