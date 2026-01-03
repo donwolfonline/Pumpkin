@@ -19,12 +19,6 @@ class DashboardScreen extends StatelessWidget {
             color: PumpkinTheme.primary,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, size: 20),
-            onPressed: () => context.read<AuthProvider>().logout(),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -33,7 +27,7 @@ class DashboardScreen extends StatelessWidget {
           children: [
             Text(
               'Good Morning,',
-              style: GoogleFonts.outfit(
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: PumpkinTheme.textSecondary,
@@ -85,7 +79,7 @@ class DashboardScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'HARVEST EFFICIENCY',
@@ -104,7 +98,7 @@ class DashboardScreen extends StatelessWidget {
                     children: [
                       Text(
                         '94%',
-                        style: GoogleFonts.outfit(
+                        style: const TextStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
@@ -149,7 +143,7 @@ class DashboardScreen extends StatelessWidget {
               '\$2,500.00',
               '2h ago',
               Icons.check_circle,
-              Colors.emerald,
+              PumpkinTheme.success,
             ),
             _buildActivityItem(
               'New Proposal',
@@ -161,18 +155,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: PumpkinTheme.background,
-        selectedItemColor: PumpkinTheme.primary,
-        unselectedItemColor: PumpkinTheme.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_rounded), label: 'CRM'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_rounded), label: 'Invoices'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_rounded), label: 'Settings'),
-        ],
       ),
     );
   }
@@ -207,7 +189,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
               color: Colors.white,
@@ -219,7 +201,7 @@ class DashboardScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: trend.startsWith('+') ? Colors.emerald : PumpkinTheme.primary,
+              color: trend.startsWith('+') ? PumpkinTheme.success : PumpkinTheme.primary,
             ),
           ),
         ],

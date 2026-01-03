@@ -1,9 +1,16 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+// Mock implementation of secure storage to avoid CocoaPods issues during demo
+class SecureStorage {
+  static final Map<String, String> _data = {};
+  Future<void> write({required String key, required String value}) async => _data[key] = value;
+  Future<String?> read({required String key}) async => _data[key];
+  Future<void> delete({required String key}) async => _data.remove(key);
+}
 
 class ApiClient {
   late Dio _dio;
-  final _storage = const FlutterSecureStorage();
+  final _storage = SecureStorage();
   
   // Update this to your local loopback if running on emulator (10.0.2.2 for Android)
   static const String baseUrl = 'http://localhost:4000/api'; 
@@ -52,5 +59,13 @@ class ApiClient {
 
   Future<Response> getDashboardStats() async {
     return _dio.get('/analytics/dashboard');
+  }
+
+  Future<Response> getContacts() async {
+    return _dio.get('/crm/contacts');
+  }
+
+  Future<Response> getInvoices() async {
+    return _dio.get('/billing/invoices');
   }
 }

@@ -11,8 +11,8 @@ dependencies:
   cupertino_icons: ^1.0.5
   provider: ^6.0.5
   dio: ^5.3.3
-  flutter_secure_storage: ^9.0.0
-  google_fonts: ^6.1.0
+  # flutter_secure_storage: ^9.0.0 (removed to bypass CocoaPods dependency)
+  # google_fonts: ^6.1.0 (removed to bypass CocoaPods dependency)
   fl_chart: ^0.65.0
   intl: ^0.18.1
 

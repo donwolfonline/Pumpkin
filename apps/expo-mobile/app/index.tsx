@@ -1,6 +1,7 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+import { useAuth } from '@/lib/auth-context';
 
 const PumpkinTheme = {
     background: '#051c1c',
@@ -11,13 +12,20 @@ const PumpkinTheme = {
 };
 
 export default function LoginScreen() {
-    const router = useRouter();
+    const { signIn, isLoading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleLogin = () => {
-        // For demo, just navigate
-        alert('Welcome to Pumpkin Mobile! 🎃');
+    const handleLogin = async () => {
+        if (!email || !password) {
+            Alert.alert('Error', 'Please enter both email and password');
+            return;
+        }
+        try {
+            await signIn(email, password);
+        } catch (e) {
+            Alert.alert('Login Failed', 'Invalid credentials or server error');
+        }
     };
 
     return (
@@ -55,10 +63,15 @@ export default function LoginScreen() {
                 </View>
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, isLoading && { opacity: 0.7 }]}
                     onPress={handleLogin}
+                    disabled={isLoading}
                 >
-                    <Text style={styles.buttonText}>SIGN IN</Text>
+                    {isLoading ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <Text style={styles.buttonText}>SIGN IN</Text>
+                    )}
                 </TouchableOpacity>
             </View>
 

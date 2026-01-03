@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class PumpkinTheme {
   static const Color primary = Color(0xFFF97316); // Orange
@@ -7,6 +6,7 @@ class PumpkinTheme {
   static const Color surface = Color(0xFF0A2C28); // Lighter Teal/Green
   static const Color textMain = Colors.white;
   static const Color textSecondary = Color(0xFF94A3B8); // Zinc 400
+  static const Color success = Color(0xFF10B981); // Emerald 500
 
   static ThemeData get darkTheme {
     return ThemeData(
@@ -19,18 +19,18 @@ class PumpkinTheme {
         surface: surface,
         background: background,
       ),
-      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        displayLarge: GoogleFonts.outfit(
+      textTheme: ThemeData.dark().textTheme.copyWith(
+        displayLarge: const TextStyle(
           color: textMain,
           fontWeight: FontWeight.w900,
           letterSpacing: -1.5,
         ),
-        displayMedium: GoogleFonts.outfit(
+        displayMedium: const TextStyle(
           color: textMain,
           fontWeight: FontWeight.w900,
           letterSpacing: -1,
         ),
-        titleLarge: GoogleFonts.outfit(
+        titleLarge: const TextStyle(
           color: textMain,
           fontWeight: FontWeight.w800,
           letterSpacing: -0.5,
