@@ -34,7 +34,8 @@ export function PumpkinLineup() {
 
 const mascots = [
     { emoji: "🎃", label: "Hero" },
-    { emoji: "👻", label: "Shadow" },
+    { emoji: "✨", label: "Magic" },
+    { emoji: "⚖️", label: "Justice" },
     { emoji: "🦉", label: "Wise" },
     { emoji: "🐱", label: "Agile" },
     { emoji: "🦇", label: "Fast" },

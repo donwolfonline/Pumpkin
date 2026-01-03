@@ -56,6 +56,7 @@ export default function RegisterPage() {
             });
 
             // If a paid plan was selected, redirect to checkout
+            localStorage.setItem("is_new_user", "true");
             if (selectedPlan && selectedPlan !== 'seedling') {
                 router.push(`/checkout?plan=${selectedPlan}`)
             } else {

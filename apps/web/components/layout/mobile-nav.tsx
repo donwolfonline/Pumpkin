@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, CreditCard, Menu, Calendar, FileText, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Menu, Calendar, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature, Globe } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export function MobileNav() {
@@ -14,6 +14,7 @@ export function MobileNav() {
     const items = [
         { label: 'Home', icon: <LayoutDashboard className="h-5 w-5" />, href: '/dashboard' },
         { label: 'Contacts', icon: <Users className="h-5 w-5" />, href: '/crm' },
+        { label: 'Website', icon: <Globe className="h-5 w-5" />, href: '/dashboard/website' },
         { label: 'Payments', icon: <CreditCard className="h-5 w-5" />, href: '/payments' },
     ];
 
@@ -24,7 +25,6 @@ export function MobileNav() {
         { label: 'Contracts', icon: <FileSignature className="h-5 w-5" />, href: '/contracts' },
         { label: 'Projects', icon: <GitBranch className="h-5 w-5" />, href: '/projects' },
         { label: 'Scheduling', icon: <Calendar className="h-5 w-5" />, href: '/scheduling' },
-        { label: 'Documents', icon: <FileText className="h-5 w-5" />, href: '/documents' },
         { label: 'Analytics', icon: <BarChart3 className="h-5 w-5" />, href: '/analytics' },
         { label: 'Settings', icon: <Settings className="h-5 w-5" />, href: '/settings' },
         { label: 'Logout', icon: <LogOut className="h-5 w-5" />, href: '#' },

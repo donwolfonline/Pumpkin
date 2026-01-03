@@ -14,7 +14,7 @@ import { api } from '@/lib/api';
 import { usePumpkinToast } from '@/components/ui/pumpkin-toast';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { getOrganizationBranding, setOrganizationBranding, getUserData, setUserData, scanForOrphanData, recoverOrphanData, deepScanForData, recoverSpecificKey } from '@/lib/storage-utils';
+import { getOrganizationBranding, setOrganizationBranding, getUserData, setUserData, scanForOrphanData, recoverOrphanData, deepScanForData, recoverSpecificKey, DEFAULT_BRANDING } from '@/lib/storage-utils';
 import { OrganizationBranding } from '@/lib/types/organization-settings';
 import { getBillingDaysRemaining } from '@/lib/subscription-utils';
 
@@ -47,28 +47,30 @@ export default function SettingsPage() {
     const { toast } = usePumpkinToast();
 
     // --- State with lazy initialization to avoid cascading renders ---
-    const [company, setCompany] = useState<OrganizationBranding>(() => getOrganizationBranding());
-    const [profile, setProfile] = useState<ProfileSettings>(() => {
+    // --- State (Initialized safely for SSR) ---
+    const [company, setCompany] = useState<OrganizationBranding>(DEFAULT_BRANDING);
+    const [profile, setProfile] = useState<ProfileSettings>({ firstName: '', lastName: '', email: '', bio: '' });
+    const [team, setTeam] = useState<TeamMember[]>([]);
+    const [plan, setPlan] = useState<'free' | 'plus' | 'pro'>('free');
+    const [notifications, setNotifications] = useState<NotificationSettings>({ emailAlerts: true, pushNotifications: true, marketingEmails: false });
+    const [security, setSecurity] = useState<SecuritySettings>({ twoFactorEnabled: false });
+    const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+
+    // --- Hydration Effect ---
+    useEffect(() => {
+        // Load stored data after mount
+        setCompany(getOrganizationBranding());
+
         const loadedProfile = getUserData<ProfileSettings>('pumpkin_profile_settings');
         const apiUser = api.getUser();
-        if (loadedProfile) return { ...loadedProfile, avatar: apiUser?.avatar };
-        if (apiUser) return { firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '', avatar: apiUser.avatar };
-        return { firstName: '', lastName: '', email: '', bio: '' };
-    });
-    const [team, setTeam] = useState<TeamMember[]>(() =>
-        getUserData<TeamMember[]>('pumpkin_team_settings') || []
-    );
-    const [newMemberEmail, setNewMemberEmail] = useState('');
-    const [plan, setPlan] = useState<'free' | 'plus' | 'pro'>(() =>
-        getUserData<'free' | 'plus' | 'pro'>('pumpkin_billing_plan') || 'free'
-    );
-    const [notifications, setNotifications] = useState<NotificationSettings>(() =>
-        getUserData<NotificationSettings>('pumpkin_notifications_settings') || { emailAlerts: true, pushNotifications: true, marketingEmails: false }
-    );
-    const [security, setSecurity] = useState<SecuritySettings>(() =>
-        getUserData<SecuritySettings>('pumpkin_security_settings') || { twoFactorEnabled: false }
-    );
-    const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+        if (loadedProfile) setProfile({ ...loadedProfile, avatar: apiUser?.avatar });
+        else if (apiUser) setProfile({ firstName: apiUser.firstName, lastName: apiUser.lastName, email: apiUser.email, bio: '', avatar: apiUser.avatar });
+
+        setTeam(getUserData<TeamMember[]>('pumpkin_team_settings') || []);
+        setPlan(getUserData<'free' | 'plus' | 'pro'>('pumpkin_billing_plan') || 'free');
+        setNotifications(getUserData<NotificationSettings>('pumpkin_notifications_settings') || { emailAlerts: true, pushNotifications: true, marketingEmails: false });
+        setSecurity(getUserData<SecuritySettings>('pumpkin_security_settings') || { twoFactorEnabled: false });
+    }, []);
 
     // --- Modal State ---
     const [isUpgradeOpen, setIsUpgradeOpen] = useState(false);

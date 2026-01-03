@@ -13,7 +13,7 @@ export function Download() {
                         Ready to join the patch?
                     </h2>
                     <p className="text-xl text-zinc-400">
-                        Download Pumpkin today and join over 150,000 freelancers who have transformed their business with our atmospheric operating system.
+                        Download Pumpkin today and join over 150,000 business founders who have transformed their business with our atmospheric operating system.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-4">

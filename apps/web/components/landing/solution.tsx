@@ -32,10 +32,11 @@ export function Solution() {
 
                         <ul className="space-y-4">
                             {[
-                                "Manage clients and leads in one place",
-                                "Send professional proposals that close",
-                                "Get paid faster with integrated billing",
-                                "Automate your busywork effortlessly"
+                                "AI-Powered CRM and Lead Management",
+                                "Verified templates from the Legal Vault",
+                                "One-click e-signatures and contracts",
+                                "Integrated billing and payment tracking",
+                                "Automated workflows and scheduling"
                             ].map((item, i) => (
                                 <li key={i} className="flex items-center gap-3 text-zinc-300 font-medium">
                                     <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center">

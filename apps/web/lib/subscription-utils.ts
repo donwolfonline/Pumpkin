@@ -8,7 +8,7 @@ export interface SubscriptionStatus {
     subscriptionStartDate?: Date;
 }
 
-const TRIAL_DAYS = 14;
+export const TRIAL_DAYS = 14;
 const BILLING_CYCLE_DAYS = 30;
 
 /**

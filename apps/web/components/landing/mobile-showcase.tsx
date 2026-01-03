@@ -19,7 +19,7 @@ export function MobileShowcase() {
                             <span className="text-primary italic animate-pulse">Now in your pocket.</span>
                         </h2>
                         <p className="text-lg text-zinc-400 max-w-xl">
-                            The full power of Pumpkin&apos;s freelancer operating system, optimized for being on the move. Never miss a payment or a lead again.
+                            The full power of Pumpkin&apos;s business operating system, optimized for being on the move. Never miss a payment or a lead again.
                         </p>
 
                         <div className="grid grid-cols-2 gap-6">

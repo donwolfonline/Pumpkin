@@ -59,7 +59,7 @@ export default function LoginPage() {
                             <span className="text-primary italic animate-pulse">is waiting.</span>
                         </h1>
                         <p className="text-xl text-zinc-400 font-medium leading-relaxed">
-                            Sign in to access your pumpkin patch. Manage your projects, clients, and team in the most atmospheric operating system for freelancers.
+                            Sign in to access your pumpkin patch. Manage your projects, clients, and team in the most atmospheric operating system for business founders and startups.
                         </p>
                     </div>
 

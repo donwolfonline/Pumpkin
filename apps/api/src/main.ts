@@ -38,7 +38,7 @@ async function bootstrap() {
   // Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Pumpkin API')
-    .setDescription('Multi-tenant SaaS platform for freelancers')
+    .setDescription('Multi-tenant SaaS platform for startups and business founders')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

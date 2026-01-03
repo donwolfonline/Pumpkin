@@ -1,31 +1,48 @@
 # 🎃 Pumpkin 🎃
 
-<img width="1430" height="662" alt="Screenshot 2025-12-30 at 1 15 26 AM" src="https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90" />
+<img width="1430" height="662" alt="Screenshot" src="https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90" />
 
-A production-ready, multi-tenant SaaS platform for freelancers and service-based businesses.
+A production-ready, multi-tenant SaaS platform for startups and modern service businesses. Now featuring **Dual AI Assistants** and native mobile support.
 
-## Features
+## 🌟 New Features (v1.0.0)
 
-- **Product Showroom** - Detailed deep-dives into CRM, Contracts, Invoicing, Proposals, and Analytics
-- **Industry Use Cases** - Tailored solutions for Creatives, Developers, Agencies, and Consultants
-- **Resource Hub** - Curated guides, templates, and business tools for solo professionals
-- **How It Works** - Interactive 4-step workflow visualization (Onboard, Propose, Execute, Collect)
-- **CRM** - Manage contacts, leads, and deals with a mobile-friendly interface
-- **Proposals & Contracts** - Create and send professional documents with dynamic templates and dual-signatures
-- **Robust PDF Engine** - Client-side high-fidelity PDF generation with reliable cross-browser download support
-- **Scheduling** - Integrated calendar and appointment management
-- **Payments & Billing** - Multi-tiered subscription plans, invoicing, and instant settlements
-- **Security & Status** - Real-time system monitoring and bank-grade data encryption
-- **Mobile Optimized** - Fully responsive design with native-feeling mobile navigation
-- **Smart Notifications** - Integrated header notifications with a creative popup system
+### 🤖 Dual AI System
+
+Pumpkin now features two distinct AI personalities tailored to the user's context:
+
+- **Global AI (Sales Focus)**: Lives on the landing page. Helps visitors understand the product, pricing, and features with a friendly, marketing-oriented personality.
+- **User Assistant (Support Focus)**: Activated upon login. This **draggable** assistant lives in the dashboard and helps with specific tasks like creating invoices, managing projects, and troubleshooting account issues. It knows your business context!
+
+### 📱 Native Mobile Support
+
+- **Expo / React Native**: A simplified mobile codebase (`apps/expo-mobile`) ready for iOS and Android deployment.
+- **Unified Backend**: Mobile app shares the same robust NestJS backend and API as the web platform.
+
+### 🛠 Service Provider Tools
+
+- **Website Builder**: Launch a professional service website with custom domains.
+- **Legal Vault**: Verified contract templates with e-signature integration.
+- **CRM & Leads**: Auto-capture leads from your public website directly into your dashboard.
+- **Project Management**: Kanban boards, task tracking, and file sharing.
+
+---
+
+## Core Features
+
+- **Proposals & Contracts**: Create, send, and e-sign professional documents.
+- **Robust PDF Engine**: High-fidelity client-side PDF generation.
+- **Payments & Billing**: Stripe integration for subscriptions and invoicing (Apple Pay supported).
+- **Security**: Real-time status monitoring, bank-grade encryption, and role-based access.
+- **Smart Notifications**: creative popup system for important alerts.
 
 ## Tech Stack
 
 ### Frontend
 
 - **Next.js 14+** (App Router)
+- **React Native / Expo** (Mobile)
 - **TypeScript**
-- **Tailwind CSS**
+- **Tailwind CSS** & **Framer Motion**
 - **shadcn/ui**
 
 ### Backend
@@ -41,195 +58,70 @@ A production-ready, multi-tenant SaaS platform for freelancers and service-based
 pumpkin/
 ├── apps/
 │   ├── web/          # Next.js frontend application
-│   │   ├── app/      # App Router pages and layouts
-│   │   ├── components/ # Reusable UI components
-│   │   ├── lib/      # Utilities and types
-│   │   └── public/   # Static assets
-│   └── api/          # NestJS backend application
-│       ├── src/      # Source code
-│       └── test/     # E2E tests
+│   ├── api/          # NestJS backend application
+│   └── expo-mobile/  # React Native mobile application
 ├── packages/
 │   ├── types/        # Shared TypeScript types
-│   └── ui/           # Shared UI components (optional)
+│   └── ui/           # Shared UI components
 ├── infrastructure/   # Docker and deployment config
 └── scripts/          # Developer scripts
 ```
 
 ## Getting Started
 
-Follow these steps to set up the project locally for development.
-
 ### Prerequisites
 
-- **Node.js**: v18 or later
-- **npm**: v9 or later
-- **Docker**: For running the database (PostgreSQL) and other services
-- **Git**: To clone the repository
+- **Node.js**: v18+
+- **Docker**: For PostgreSQL/Redis
+- **Git**
 
 ### Installation
 
 1. **Clone the repository**
 
-   ```bash
-   git clone <repository-url>
-   cd pumpkin
-   ```
+    ```bash
+    git clone <repository-url>
+    cd pumpkin
+    ```
 
 2. **Install dependencies**
-   Install all dependencies for the entire workspace from the root directory:
 
-   ```bash
-   npm install
-   ```
+    ```bash
+    npm install
+    ```
 
-3. **Environment Configuration**
-   The project uses environment variables for configuration. You need to set these up in both the `web` and `api` apps.
+3. **Environment Config**
+    Copy `.env.example` to `.env` in `apps/web`, `apps/api`, and `apps/expo-mobile`.
 
-   - **Backend (apps/api)**:
+4. **Start Infrastructure**
 
-     ```bash
-     cp apps/api/.env.example apps/api/.env
-     ```
-
-   - **Frontend (apps/web)**:
-
-     ```bash
-     cp apps/web/.env.example apps/web/.env
-     ```
-
-4. **Start Infrastructure (Database)**
-   Run the following command to start the PostgreSQL database container:
-
-   ```bash
-   docker-compose -f infrastructure/docker/docker-compose.yml up -d
-   ```
+    ```bash
+    docker-compose -f infrastructure/docker/docker-compose.yml up -d
+    ```
 
 5. **Initialize Database**
-   Run migrations to set up the database schema:
 
-   ```bash
-   cd apps/api
-   npm run migration:run
-   cd ../..
-   ```
+    ```bash
+    cd apps/api && npm run migration:run
+    ```
 
-6. **Start Development Servers**
-   From the root directory, start all applications in development mode:
+6. **Start Development**
 
-   ```bash
-   npm run dev
-   ```
+    ```bash
+    npm run dev
+    ```
 
-   - **Frontend**: [http://localhost:3000](http://localhost:3000)
-   - **API**: [http://localhost:4000](http://localhost:4000)
-   - **API Docs**: [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
-
-## Features & Usage
-
-### 📄 Proposals & Contracts
-
-- **Create Proposals**: Generate professional proposals with dynamic pricing.
-- **Dual Signatures**: Provider signs first, then shares via **QR Code** or **Public Link** for client signature.
-- **PDF Download**: Automatically generate and download high-quality PDFs of signed documents.
-
-### 💳 Payments
-
-- **Stripe Integration**: Secure payment processing for subscriptions and invoices.
-- **Subscription Plans**: Managed via the admin dashboard.
-
-### 📊 CRM & Analytics
-
-- **Dashboard**: Real-time overview of business performance.
-- **Client Management**: Track leads and client interactions.
-
-## Development Workflow
-
-### Workspace Overview
-
-This is a monorepo managed with **Turborepo** and **npm workspaces**.
-
-- `apps/web`: Next.js 16 (Turbopack) frontend
-- `apps/api`: NestJS backend
-- `packages/types`: Shared TypeScript definitions
-- `packages/ui`: Shared UI components (using shadcn/ui)
-
-### Common Commands
-
-Run these commands from the **root directory**:
-
-```bash
-# Start all apps in watch mode
-npm run dev
-
-# Build all packages and applications
-npm run build
-
-# Run linting for all workspaces
-npm run lint
-
-# Format code with Prettier
-npm run format
-
-# Run tests across all workspaces
-npm run test
-```
-
-### Working with Workspaces
-
-To run a command for a specific workspace:
-
-```bash
-# Run dev only for the web app
-npm run dev --workspace=web
-
-# Add a package to the api app
-npm install <package-name> --workspace=api
-```
-
-### Database Management
-
-The backend uses **TypeORM**. Common database commands (run in `apps/api`):
-
-```bash
-# Generate a new migration
-npm run migration:generate -- src/migrations/MigrationName
-
-# Apply migrations
-npm run migration:run
-
-# Revert the last migration
-npm run migration:revert
-```
+    - **Web**: [http://localhost:3000](http://localhost:3000)
+    - **API**: [http://localhost:4000](http://localhost:4000)
 
 ## Deployment
 
-### ⚡️ Quick Deploy (Recommended)
+### ⚡️ Quick Deploy
 
-Deploy the entire platform in minutes using these pre-configured buttons.
+Deploy easily to Vercel (Web) and your preferred cloud provider (API).
 
-**Step 1: Deploy the Backend (API)**  
-Click this button first to set up your database and API.  
-[![Deploy API with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdonwolfonline%2FPumpkin&root-directory=apps%2Fapi&project-name=pumpkin-api&framework=other&buildCommand=npm%20install%20%26%26%20npm%20run%20build&outputDirectory=dist&env=DATABASE_URL,FRONTEND_URL,JWT_ACCESS_SECRET,JWT_REFRESH_SECRET)
-
-**Step 2: Deploy the Frontend (Web)**  
-After the API is deployed, copy its URL and use it here.  
-[![Deploy Web with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fdonwolfonline%2FPumpkin&root-directory=apps%2Fweb&project-name=pumpkin-web&framework=nextjs&env=NEXT_PUBLIC_API_URL)
+1. **Deploy API**: Set up your PostgreSQL database (e.g., Neon) and deploy the `apps/api` folder.
+2. **Deploy Web**: Connect the `apps/web` folder to Vercel and set `NEXT_PUBLIC_API_URL` to your live API.
 
 ---
-
-### Manual Deployment
-
-#### 1. Database Setup
-
-We recommend **Neon** (Serverless Postgres). You can add it directly from the Vercel Marketplace during the API deployment detailed above.
-
-#### 2. Environment Variables Guide
-
-When prompted by the deploy buttons:
-
-| Variable | Description |
-| :--- | :--- |
-| `DATABASE_URL` | Your Postgres connection string (from Neon/Vercel) |
-| `FRONTEND_URL` | The URL of your Web deployment (e.g., `https://pumpkin-web.vercel.app`) |
-| `NEXT_PUBLIC_API_URL` | The URL of your API deployment (e.g., `https://pumpkin-api.vercel.app`) |
-| `JWT_SECRETS` | Generate secure random strings for Access/Refresh secrets |
+*Built with 🎃 by the Pumpkin Team*

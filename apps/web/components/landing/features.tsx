@@ -60,27 +60,27 @@ export function Features() {
 
 const features = [
     {
-        title: "Manage Leads",
-        mascot: "🤓",
-        description: "Track leads, manage clients, and move deals through pipelines.",
+        title: "AI-Augmented CRM",
+        mascot: "✨",
+        description: "Track leads and manage clients with proactive AI insights and automation.",
         icon: <Users className="w-6 h-6" />
     },
     {
-        title: "Paperless Logic",
-        mascot: "📜",
-        description: "Create beautiful proposals and contracts for instant signing.",
+        title: "Legal Vault",
+        mascot: "⚖️",
+        description: "Verified contract templates with secure e-signatures and paperless logic.",
         icon: <FileText className="w-6 h-6" />
     },
     {
-        title: "Fast Payments",
+        title: "Automated Billing",
         mascot: "💰",
-        description: "Accept online payments and automate reminders instantly.",
+        description: "Integrated invoicing and payment tracking that works while you sleep.",
         icon: <CreditCard className="w-6 h-6" />
     },
     {
-        title: "Easy Booking",
+        title: "Smart Scheduler",
         mascot: "📅",
-        description: "Share links and keep your calendar in perfect sync.",
+        description: "Sync your calendar and let AI handle the booking back-and-forth.",
         icon: <Calendar className="w-6 h-6" />
     },
 ]

@@ -12,11 +12,11 @@ export default function ResourcesPage() {
                 <header className="mx-auto max-w-7xl px-6 text-center mb-20">
                     <h1 className="text-sm font-black text-primary uppercase tracking-[0.4em] mb-4">knowledge Hub</h1>
                     <h2 className="text-4xl md:text-7xl font-black text-white uppercase tracking-tighter leading-tight glow-orange">
-                        Freelance Resources. <br />
+                        Business Resources. <br />
                         <span className="text-zinc-600">Built for Growth.</span>
                     </h2>
                     <p className="mt-8 text-xl text-zinc-400 max-w-2xl mx-auto">
-                        A curated collection of guides, templates, and tools to help you run your solo business with atmospheric clarity.
+                        A curated collection of guides, templates, and tools to help you run your startup with atmospheric clarity.
                     </p>
                 </header>
 
@@ -27,7 +27,7 @@ export default function ResourcesPage() {
                         <div className="relative p-8 md:p-16 rounded-[4rem] bg-[#0a2c28]/40 border border-white/5 backdrop-blur-3xl overflow-hidden flex flex-col lg:flex-row items-center gap-12">
                             <div className="flex-1 space-y-6">
                                 <span className="px-3 py-1 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest rounded-full">New Guide</span>
-                                <h3 className="text-4xl font-black text-white uppercase tracking-tighter">The Freelance <br /> Operating System</h3>
+                                <h3 className="text-4xl font-black text-white uppercase tracking-tighter">The Modern Business <br /> Operating System</h3>
                                 <p className="text-zinc-400 text-lg leading-relaxed">
                                     Our comprehensive 50-page guide on automating your entire business lifecycle, from discovery calls to multi-currency settlements.
                                 </p>
@@ -106,8 +106,8 @@ export default function ResourcesPage() {
 const resourceCategories = [
     {
         icon: BookOpen,
-        title: "Freelance Guides",
-        description: "In-depth articles and playbooks for scaling your solo business operations.",
+        title: "Founder Guides",
+        description: "In-depth articles and playbooks for scaling your business operations.",
         items: [
             { label: "Financial Mastery for 1099s", type: "article" },
             { label: "Client Onboarding Secrets", type: "article" },

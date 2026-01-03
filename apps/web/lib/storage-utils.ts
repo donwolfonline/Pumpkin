@@ -817,3 +817,196 @@ export const ensureContactExists = (data: {
     setContacts([newContact, ...contacts]);
     return newContact;
 };
+
+// Super Admin Helpers
+// Since we're using localStorage, we need to scan all keys to aggregate data for the admin dashboard.
+
+export interface AdminUserSummary {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    joinedAt: Date;
+    subscriptionTier: string;
+    revenue: number;
+}
+
+export function getAllUsersForAdmin(): AdminUserSummary[] {
+    if (typeof window === 'undefined') return [];
+
+    const users: AdminUserSummary[] = [];
+    const seenUserIds = new Set<string>();
+
+    // We can infer users by looking for organization keys (user_id_pumpkin_organization)
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes('_pumpkin_organization') && !key.startsWith('guest_')) {
+            const userId = key.split('_')[0];
+            if (seenUserIds.has(userId)) continue;
+            seenUserIds.add(userId);
+
+            // Try to fetch org data
+            let orgData: (OrganizationBranding & { subscriptionTier?: string }) | null = null;
+            try {
+                orgData = JSON.parse(localStorage.getItem(key) || '{}');
+            } catch { }
+
+            // Try to infer email/name from profile logic or mock it based on ID if we stored profile separately
+            // In our mock auth, we don't store a separate "users" table in localStorage, 
+            // but we can derive some info or use placeholder if missing.
+
+            // Calculate platform revenue based on subscription tier (Monthly Recurring Revenue)
+            let monthlyRevenue = 0;
+            const tier = orgData?.subscriptionTier || 'free';
+
+            if (tier === 'starter') monthlyRevenue = 12;      // Sprout Plan
+            else if (tier === 'professional') monthlyRevenue = 29; // Big Pumpkin Plan
+            else if (tier === 'enterprise') monthlyRevenue = 299; // Custom Plan (Estimated)
+
+            users.push({
+                id: userId,
+                name: orgData?.companyName || `User ${userId.substring(0, 4)}`,
+                email: orgData?.email || `user_${userId}@example.com`,
+                role: 'Proprietor', // Default role for main user
+                joinedAt: new Date(), // Mock date since we don't store user creation in LS
+                subscriptionTier: tier === 'free' ? 'Seedling (Free)' :
+                    tier === 'starter' ? 'Sprout ($12/mo)' :
+                        tier === 'professional' ? 'Big Pumpkin ($29/mo)' : 'Enterprise',
+                revenue: monthlyRevenue
+            });
+        }
+    }
+
+    return users;
+}
+
+
+// Website Builder Types & Helpers
+export interface SitePage {
+    id: string;
+    slug: string; // e.g., 'about', 'contact'
+    title: string;
+    content: string; // Plain text or simple HTML for now
+    isHome?: boolean;
+}
+
+export interface SiteNavigationLink {
+    id: string;
+    label: string;
+    url: string; // #section, /path, or https://
+    type: 'page' | 'external' | 'section';
+}
+
+export interface ServiceOffering {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    images: string[]; // URLs
+    category: 'service' | 'product';
+    customCategory?: string; // User defined category
+    stock?: number;   // For products
+    duration?: number; // For services (minutes)
+}
+
+export interface UserSite {
+    id: string;
+    userId: string;
+    subdomain: string;
+    title: string;
+    description: string;
+    themeColor: string;
+    offerings: ServiceOffering[];
+    pages: SitePage[];
+    headerLinks: SiteNavigationLink[];
+    categories: string[]; // User defined categories
+    logo?: string; // Base64 or URL
+    footerContent?: string;
+    socialLinks?: { platform: string; url: string }[];
+    published: boolean;
+    updatedAt: string;
+}
+
+const STORAGE_KEY_SITES = 'pumpkin_sites';
+
+export const getUserSite = (): UserSite | null => {
+    // 1. Try new plural key
+    const site = getUserData<UserSite>(STORAGE_KEY_SITES);
+    if (site) return site;
+
+    // 2. Fallback: Try legacy singular key (migration)
+    const legacySite = getUserData<UserSite>('pumpkin_site');
+    if (legacySite) {
+        // Migrate to new key immediately
+        saveUserSite(legacySite);
+        // Clean up old key (optional, but good for hygiene)
+        // removeUserData('pumpkin_site'); 
+        return legacySite;
+    }
+
+    return null;
+};
+
+export const saveUserSite = (site: UserSite): void => {
+    setUserData(STORAGE_KEY_SITES, site);
+};
+
+/**
+ * Public Site Helpers (Global Scan)
+ * Since sites are public, we need to scan all localStorage keys to find the one matching the subdomain.
+ */
+export const getPublicSiteBySubdomain = (subdomain: string): UserSite | null => {
+    if (typeof window === 'undefined') return null;
+
+    const targetSubdomain = subdomain.toLowerCase();
+
+    // 1. Check current user first (optimization)
+    const currentSite = getUserSite();
+    if (currentSite && currentSite.subdomain && currentSite.subdomain.toLowerCase() === targetSubdomain && currentSite.published) {
+        return currentSite;
+    }
+
+    // 2. Scan all storage for other users' sites to support multi-tenancy simulation
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        // We look for any key that ends with 'pumpkin_sites' AND stores a single object (not array) that matches our shape
+        // OR specifically matches our known key pattern `userId_pumpkin_sites`
+        // Check for both legacy (pumpkin_site) and new (pumpkin_sites) keys
+        if (key && (key.includes(STORAGE_KEY_SITES) || key.includes('pumpkin_site'))) {
+            try {
+                const data = localStorage.getItem(key);
+                if (data) {
+                    const site = JSON.parse(data) as UserSite;
+                    // Check if it's the right shape and matches subdomain
+                    if (site.subdomain && site.subdomain.toLowerCase() === targetSubdomain && site.published) {
+                        return site;
+                    }
+                }
+            } catch {
+                continue;
+            }
+        }
+    }
+    return null;
+};
+
+/**
+ * DEBUG HELPER: Returns all sites found in storage.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const debugPublicSites = (): any[] => {
+    if (typeof window === 'undefined') return [];
+    const sites = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('pumpkin_sites') || key.includes('pumpkin_site'))) {
+            try {
+                const data = localStorage.getItem(key);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                if (data) sites.push({ key, data: JSON.parse(data) as any });
+            } catch (e) { sites.push({ key, error: e }); }
+        }
+    }
+    return sites;
+};
+

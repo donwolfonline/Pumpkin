@@ -20,13 +20,15 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "Pumpkin | The All-in-One Operating System for Freelancers",
+  title: "Pumpkin | The All-in-One Operating System for Modern Businesses",
   description: "Manage CRM, scheduling, payments, and automation in one place. Scale your service business with Pumpkin.",
 };
 
 import { PumpkinToastProvider } from "@/components/ui/pumpkin-toast";
 import { NavigationLoader } from "@/components/ui/magical-loader";
 import { NotificationProvider } from "@/components/providers/notification-provider";
+
+import { PumpkinAssistant } from "@/components/pumpkin-assistant";
 
 export default function RootLayout({
   children,
@@ -45,6 +47,7 @@ export default function RootLayout({
         <PumpkinToastProvider>
           <NotificationProvider>
             {children}
+            <PumpkinAssistant />
           </NotificationProvider>
         </PumpkinToastProvider>
       </body>

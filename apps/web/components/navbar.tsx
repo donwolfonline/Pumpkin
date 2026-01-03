@@ -97,7 +97,7 @@ export function Navbar() {
 
                             <Dialog open={isDemoOpen} onOpenChange={setIsDemoOpen}>
                                 <DialogTrigger asChild>
-                                    <button className="px-4 py-2 rounded-full text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/10 transition-all">
+                                    <button suppressHydrationWarning className="px-4 py-2 rounded-full text-sm font-semibold text-zinc-300 hover:text-white hover:bg-white/10 transition-all">
                                         Book a Demo
                                     </button>
                                 </DialogTrigger>
@@ -166,6 +166,7 @@ export function Navbar() {
                                     <Dialog open={isDemoOpen} onOpenChange={setIsDemoOpen}>
                                         <DialogTrigger asChild>
                                             <motion.button
+                                                suppressHydrationWarning
                                                 className="px-4 py-2 rounded-full bg-[#051c1c]/90 backdrop-blur-xl border border-white/10 shadow-xl text-xs font-semibold text-white hover:bg-white/10 transition-colors"
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.95 }}

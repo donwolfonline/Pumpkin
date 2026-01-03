@@ -12,7 +12,7 @@ export function UseCases() {
                     <div className="inset-pod p-10 rounded-[4rem] text-center group hover:scale-105 transition-transform duration-500">
                         <span className="text-8xl mb-6 block filter drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)]">🎨</span>
                         <h3 className="text-2xl font-bold font-heading text-white mb-4">The Lone Wolf</h3>
-                        <p className="text-zinc-400">Freelancers running their entire business solo. We handle the boring stuff.</p>
+                        <p className="text-zinc-400">Founders running their entire business solo. We handle the boring stuff.</p>
                     </div>
 
                     <div className="inset-pod p-10 rounded-[4rem] text-center group hover:scale-105 transition-transform duration-500">

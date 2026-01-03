@@ -15,12 +15,22 @@ import type { ChartDataPoint } from '@/lib/analytics-utils';
 
 // Live Trial Countdown Component
 function TrialCountdown() {
-    const [timeRemaining, setTimeRemaining] = useState(getTrialTimeRemaining());
+    // Initialize with default server state (14 days) to prevent hydration mismatch
+    // The server cannot access localStorage, so it always renders the default trial length.
+    // The client mimics this initially, then updates after mount.
+    const [timeRemaining, setTimeRemaining] = useState({
+        days: 14, // Hardcoded to match server default
+        hours: 0,
+        minutes: 0,
+        totalDays: 14
+    });
     const [mounted, setMounted] = useState(false);
 
-    // Detect client-side mount (intentional for SSR hydration safety)
+    // Detect client-side mount and fetch real data
     useEffect(() => {
         setMounted(true);
+        // Immediate update to show real user data
+        setTimeRemaining(getTrialTimeRemaining());
     }, []);
 
     // Update countdown every minute

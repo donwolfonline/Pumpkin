@@ -16,7 +16,7 @@ const plans = [
         emoji: "🌿",
         price: "$12",
         priceSuffix: "/mo",
-        description: "For the growing freelancer.",
+        description: "For the growing business founder.",
         features: ["10 Projects", "Advanced CRM", "Custom Branding", "Priority Support"],
         button: "Get Started",
         popular: false

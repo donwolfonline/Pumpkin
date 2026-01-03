@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 
 export function Hero() {
     return (
@@ -32,19 +32,24 @@ export function Hero() {
                 </div>
 
                 <div className="max-w-4xl">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+                        <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                        <span className="text-primary text-xs font-bold uppercase tracking-widest">Now AI-Powered</span>
+                    </div>
+
                     <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl mb-12 font-heading leading-tight glow-orange">
-                        Halloween Party in Pumpkin? <br />
-                        <span className="text-primary italic animate-glow">호박이~ 넝쿨째~</span>
+                        The AI Operating System <br />
+                        <span className="text-primary italic animate-glow">for Modern Business</span>
                     </h1>
 
                     <p className="text-xl leading-relaxed text-zinc-300 mb-14 text-balance font-medium max-w-2xl mx-auto">
-                        Pumpkin is the all-in-one business platform for freelancers and service businesses — manage clients, proposals, contracts, payments, and workflows.
+                        Pumpkin integrates AI-guided CRM, Legal Vaults, and Automated Billing into one beautiful interface. Grow your business, not your workload.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
                         <Link href="/register">
                             <Button size="lg" className="h-16 px-10 text-xl font-bold rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_30px_rgba(249,115,22,0.4)] hover:scale-105 transition-all">
-                                🎃 Start Free Now
+                                🎃 Get Started Free
                             </Button>
                         </Link>
                         <Link href="#how-it-works">
@@ -57,7 +62,7 @@ export function Hero() {
                     <div className="flex flex-wrap items-center justify-center gap-8 text-sm font-bold text-zinc-400">
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-primary" />
-                            <span>Freelancers Love Us</span>
+                            <span>Founders Love Us</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className="w-5 h-5 text-primary" />

@@ -1,6 +1,6 @@
 # Pumpkin Mobile 🎃
 
-A native mobile companion for the Pumpkin freelancer platform, built with Flutter.
+A native mobile companion for the Pumpkin startup and business platform, built with Flutter.
 
 ## Features
 

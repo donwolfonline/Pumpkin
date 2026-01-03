@@ -20,6 +20,9 @@ export interface User {
     organizationId?: string | null;
     role: string;
     avatar?: string;
+    companyName?: string;
+    emailVerified?: boolean;
+    subscriptionStatus?: 'active' | 'inactive' | 'past_due';
 }
 
 export interface PortalStats {
@@ -142,6 +145,31 @@ class ApiClient {
             // Fallback to localStorage-based auth when API is unavailable
             console.warn('API unavailable, using localStorage auth');
 
+            // Super Admin Login
+            if (email === 'admin@pumpkin.app' && password === 'admin') {
+                const adminUser: User = {
+                    id: 'admin-user',
+                    email: 'admin@pumpkin.app',
+                    firstName: 'Super',
+                    lastName: 'Admin',
+                    emailVerified: true,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    role: 'super_admin',
+                };
+
+                const response = {
+                    accessToken: 'fake-admin-token',
+                    refreshToken: 'fake-admin-refresh-token',
+                    user: adminUser,
+                };
+
+                this.setTokens(response);
+                this.setUser(adminUser);
+                return response;
+            }
+
+            // Normal User Login
             // Extract name from email (e.g., john.doe@example.com -> John Doe)
             const nameParts = email.split('@')[0].split('.');
             const firstName = nameParts[0]?.charAt(0).toUpperCase() + nameParts[0]?.slice(1) || 'User';

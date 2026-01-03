@@ -2,6 +2,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { MobileSidebar } from '@/components/layout/mobile-sidebar';
+import { UserAssistant } from '@/components/user-assistant';
 
 interface DashboardShellProps {
     children: React.ReactNode;
@@ -33,6 +34,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
             {/* Mobile Side Drawer */}
             <MobileSidebar />
+
+            {/* Dashboard AI Assistant */}
+            <UserAssistant />
         </div>
     );
 }

@@ -1,11 +1,17 @@
 {
   "name": "pumpkin",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/apps/expo-mobile/**",
+      "**/apps/expo-mobile"
+    ]
+  },
   "dependencies": {
     "next": "16.1.1",
     "react": "19.2.3",
@@ -16,6 +22,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
+    "mobile": "npm run start --workspace=apps/expo-mobile",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "clean": "turbo run clean && rm -rf node_modules"
   },

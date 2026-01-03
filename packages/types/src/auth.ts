@@ -1,6 +1,7 @@
 export enum UserRole {
     PROVIDER = 'provider',
     CLIENT = 'client',
+    SUPER_ADMIN = 'super_admin',
 }
 
 // User types
