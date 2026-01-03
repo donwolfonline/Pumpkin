@@ -439,6 +439,33 @@ class ApiClient {
     async getHealth() {
         return this.request<any>('/health');
     }
+
+    // Finance
+    async getFinanceAccounts() {
+        return this.request<any[]>('/finance/accounts');
+    }
+
+    async getFinanceLedger() {
+        return this.request<any[]>('/finance/ledger');
+    }
+
+    async getFinanceExpenses() {
+        return this.request<any[]>('/finance/expenses');
+    }
+
+    async createFinanceExpense(data: any) {
+        return this.request<any>('/finance/expenses', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async createJournalEntry(data: any) {
+        return this.request<any>('/finance/journal', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
 }
 
 export const api = new ApiClient();

@@ -72,9 +72,9 @@ const features = [
         icon: <FileText className="w-6 h-6" />
     },
     {
-        title: "Automated Billing",
-        mascot: "💰",
-        description: "Integrated invoicing and payment tracking that works while you sleep.",
+        title: "Core Finance",
+        mascot: "📊",
+        description: "Full accounting suite with Chart of Accounts, General Ledger, and automated expense tracking.",
         icon: <CreditCard className="w-6 h-6" />
     },
     {

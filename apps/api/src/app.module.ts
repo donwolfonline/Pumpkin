@@ -13,6 +13,7 @@ import { AutomationModule } from './modules/automation/automation.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { HealthModule } from './modules/health/health.module';
 import { ClientPortalModule } from './modules/client-portal/client-portal.module';
+import { FinanceModule } from './modules/finance/finance.module';
 import { DummyDataSeeder } from './common/seed/dummy-data.seeder';
 import { User } from './modules/auth/entities/user.entity';
 import { Organization } from './modules/tenant/entities/organization.entity';
@@ -97,6 +98,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
       Automation,
     ]),
     ClientPortalModule,
+    FinanceModule,
   ],
   controllers: [AppController],
   providers: [

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Lead } from '../../crm/entities/lead.entity';
 import { Payment, PaymentStatus } from '../../payments/entities/payment.entity';
+import { Invoice } from '../../payments/entities/invoice.entity';
 import {
   Appointment,
   AppointmentStatus,
@@ -17,11 +18,13 @@ export class AnalyticsService {
     private readonly leadRepo: Repository<Lead>,
     @InjectRepository(Payment)
     private readonly paymentRepo: Repository<Payment>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepo: Repository<Invoice>,
     @InjectRepository(Appointment)
     private readonly appointmentRepo: Repository<Appointment>,
     @InjectRepository(SystemEvent)
     private readonly eventRepo: Repository<SystemEvent>,
-  ) {}
+  ) { }
 
   async trackEvent(
     organizationId: string,
@@ -41,7 +44,7 @@ export class AnalyticsService {
   }
 
   async getSummary(organizationId: string) {
-    const [totalLeads, activeAppointments, payments] = await Promise.all([
+    const [totalLeads, activeAppointments, payments, invoices] = await Promise.all([
       this.leadRepo.count({ where: { organizationId } }),
       this.appointmentRepo.count({
         where: { organizationId, status: AppointmentStatus.SCHEDULED },
@@ -49,14 +52,25 @@ export class AnalyticsService {
       this.paymentRepo.find({
         where: { organizationId, status: PaymentStatus.SUCCEEDED },
       }),
+      this.invoiceRepo.find({
+        where: { organizationId },
+      }),
     ]);
 
     const totalRevenue = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const pendingRevenue = invoices
+      .filter((i) => i.status === 'sent' || i.status === 'pending')
+      .reduce((sum, i) => sum + Number(i.amountPaid || 0), 0);
+    const overdueRevenue = invoices
+      .filter((i) => i.status === 'overdue')
+      .reduce((sum, i) => sum + Number(i.amountPaid || 0), 0);
 
     return {
       totalLeads,
       activeAppointments,
       totalRevenue,
+      pendingRevenue,
+      overdueRevenue,
       currency: 'USD',
     };
   }

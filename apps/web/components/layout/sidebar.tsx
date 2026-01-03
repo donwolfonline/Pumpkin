@@ -22,7 +22,8 @@ import {
     GitBranch,
     LogOut,
     ArrowUpCircle,
-    Globe
+    Globe,
+    Banknote
 } from 'lucide-react';
 
 type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
@@ -45,6 +46,7 @@ export function Sidebar({ className }: SidebarProps) {
         { label: 'Payments', icon: <CreditCard className="h-4 w-4" />, href: '/payments' },
         { label: 'Analytics', icon: <BarChart3 className="h-4 w-4" />, href: '/analytics' },
         { label: 'Website', icon: <Globe className="h-4 w-4" />, href: '/dashboard/website' },
+        { label: 'Finance', icon: <Banknote className="h-4 w-4" />, href: '/finance' },
     ];
 
     const initials = user ? `${user.firstName?.charAt(0) || ''}${user.lastName?.charAt(0) || ''}` : 'P';

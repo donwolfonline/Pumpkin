@@ -6,6 +6,7 @@ import { DashboardShell } from '@/components/dashboard-shell';
 import { OverviewStats } from '@/components/features/dashboard/overview-stats';
 import { RevenueChart } from '@/components/features/dashboard/revenue-chart';
 import { RecentActivity } from '@/components/features/dashboard/recent-activity';
+import { FinanceOverview } from '@/components/features/dashboard/finance-overview';
 import { Button } from '@/components/ui/button';
 import { Download, Plus, Loader2 } from 'lucide-react';
 import { useUser } from '@/hooks/use-user';
@@ -100,6 +101,8 @@ export default function DashboardPage() {
         revenueChange?: number;
         totalSignedContracts?: number;
         activeProjects?: number;
+        pendingRevenue: number;
+        overdueRevenue: number;
     } | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
     const [subscriptionStatus, setSubscriptionStatus] = useState(getSubscriptionStatus());
@@ -259,6 +262,12 @@ export default function DashboardPage() {
                 ) : (
                     <>
                         <OverviewStats data={stats} />
+
+                        <div className="space-y-1 mt-4 mb-2">
+                            <h3 className="text-lg font-bold tracking-tight font-heading">Finance Overview</h3>
+                            <p className="text-xs text-zinc-500 italic">Tracking your cash flow and tax estimates.</p>
+                        </div>
+                        <FinanceOverview data={stats} />
 
                         <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
                             <div className="lg:col-span-4">

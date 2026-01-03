@@ -23,6 +23,7 @@ Pumpkin now features two distinct AI personalities tailored to the user's contex
 - **Website Builder**: Launch a professional service website with custom domains.
 - **Legal Vault**: Verified contract templates with e-signature integration.
 - **CRM & Leads**: Auto-capture leads from your public website directly into your dashboard.
+- **Core Finance**: Full accounting suite with Chart of Accounts, General Ledger, and Expense Management.
 - **Project Management**: Kanban boards, task tracking, and file sharing.
 
 ---
