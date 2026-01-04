@@ -133,7 +133,7 @@ export default function CommunityPage() {
 
                         <div className="p-4 text-center">
                             <span className="text-[10px] text-zinc-700 font-bold uppercase tracking-[0.3em]">
-                                &copy; 2026 Pumpkin Inc
+                                &copy; {new Date().getFullYear()} Pumpkin Inc
                             </span>
                         </div>
                     </div>

@@ -67,7 +67,7 @@ export function Footer() {
                 </div>
 
                 <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">© 2024 Pumpkin Party Inc. All rights reserved.</p>
+                    <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">© {new Date().getFullYear()} Pumpkin Party Inc. All rights reserved.</p>
                     <div className="flex items-center gap-6">
                         <Link href="/status" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                             <span className="relative flex h-2 w-2">
