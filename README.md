@@ -134,4 +134,4 @@ Deploy easily to Vercel (Web) and your preferred cloud provider (API).
 2. **Deploy Web**: Connect the `apps/web` folder to Vercel and set `NEXT_PUBLIC_API_URL` to your live API.
 
 ---
-*Built with 🎃 by the Pumpkin Team*
+*Built with 🎃 by the Pumpkin Team | v1.0.0*
