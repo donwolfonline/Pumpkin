@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VERSION } from "@/lib/version";
 
 export function Footer() {
     return (
@@ -66,9 +67,18 @@ export function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest">© {new Date().getFullYear()} Pumpkin Party Inc. All rights reserved.</p>
-                    <div className="flex items-center gap-6">
+                <div className="border-t border-white/5 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+                    <p className="text-xs text-zinc-600 font-bold uppercase tracking-widest md:w-1/3">
+                        © {new Date().getFullYear()} Pumpkin Party Inc.
+                    </p>
+
+                    <div className="md:w-1/3 flex justify-center">
+                        <span className="text-[10px] text-zinc-700 font-bold uppercase tracking-[0.3em] bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                            System v{VERSION}
+                        </span>
+                    </div>
+
+                    <div className="md:w-1/3 flex items-center justify-center md:justify-end gap-6">
                         <Link href="/status" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                             <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -76,9 +86,6 @@ export function Footer() {
                             </span>
                             <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">All Systems Normal</span>
                         </Link>
-                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
-                            v{require('../../../package.json').version}
-                        </span>
                     </div>
                 </div>
             </div>
