@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, CreditCard, Menu, Calendar, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature, Globe } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Menu, Calendar, BarChart3, GitBranch, Settings, LogOut, FileEdit, FileSignature, Globe, FileText, Banknote, MessageSquare } from 'lucide-react';
 import { api } from '@/lib/api';
 
 export function MobileNav() {
@@ -19,8 +19,9 @@ export function MobileNav() {
     ];
 
     const moreItems = [
-        { label: 'Payments', icon: <CreditCard className="h-5 w-5" />, href: '/payments' },
-        { label: 'CRM', icon: <Users className="h-5 w-5" />, href: '/crm' },
+        { label: 'Documents', icon: <FileText className="h-5 w-5" />, href: '/documents' },
+        { label: 'Finance', icon: <Banknote className="h-5 w-5" />, href: '/finance' },
+        { label: 'Community', icon: <MessageSquare className="h-5 w-5" />, href: '/community' },
         { label: 'Proposals', icon: <FileEdit className="h-5 w-5" />, href: '/proposals' },
         { label: 'Contracts', icon: <FileSignature className="h-5 w-5" />, href: '/contracts' },
         { label: 'Projects', icon: <GitBranch className="h-5 w-5" />, href: '/projects' },

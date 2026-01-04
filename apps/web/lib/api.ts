@@ -23,6 +23,8 @@ export interface User {
     companyName?: string;
     emailVerified?: boolean;
     subscriptionStatus?: 'active' | 'inactive' | 'past_due';
+    createdAt?: Date | string;
+    updatedAt?: Date | string;
 }
 
 export interface PortalStats {
@@ -72,6 +74,20 @@ export interface JournalEntry {
     description: string;
     reference?: string;
     lines: JournalLine[];
+}
+
+export interface PumpkinDocument {
+    id: string;
+    title: string;
+    type: string;
+    client: string;
+    date: string;
+    status: string;
+    content: string;
+    header?: string;
+    footer?: string;
+    logoUrl?: string;
+    category?: string;
 }
 
 export interface CommunityComment {

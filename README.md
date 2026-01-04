@@ -1,6 +1,6 @@
 # 🎃 Pumpkin 🎃
 
-<img width="1430" height="662" alt="Screenshot" src="https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90" />
+![Screenshot](https://github.com/user-attachments/assets/d825f9ba-f87d-47e0-8470-43fc616a8c90)
 
 A production-ready, multi-tenant SaaS platform for startups and modern service businesses. Now featuring **Dual AI Assistants** and native mobile support.
 
@@ -134,4 +134,4 @@ Deploy easily to Vercel (Web) and your preferred cloud provider (API).
 2. **Deploy Web**: Connect the `apps/web` folder to Vercel and set `NEXT_PUBLIC_API_URL` to your live API.
 
 ---
-*Built with 🎃 by the Pumpkin Team | v1.0.0*
+Built with 🎃 by the **Pumpkin Team** | v1.0.0

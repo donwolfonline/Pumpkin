@@ -31,7 +31,7 @@ export function Header() {
     }, []);
 
     return (
-        <header className="sticky top-0 z-30 flex h-20 w-full items-center gap-4 border-b border-white/5 bg-[#051c1c]/40 px-8 backdrop-blur-xl relative">
+        <header className="sticky top-0 z-30 flex h-16 sm:h-20 w-full items-center gap-4 border-b border-white/5 bg-[#051c1c]/40 px-4 sm:px-8 backdrop-blur-xl relative">
             <div className="flex flex-1 items-center gap-4">
                 <CommandPalette />
             </div>

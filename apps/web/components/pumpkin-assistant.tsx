@@ -402,12 +402,12 @@ export function PumpkinAssistant() {
                 <button
                     onClick={() => setIsOpen(!isOpen)}
                     className={cn(
-                        "w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all duration-500 relative overflow-hidden group border-2",
+                        "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all duration-500 relative overflow-hidden group border-2",
                         isOpen ? "bg-zinc-950 border-white/20" : "bg-[#f97316] border-white/10"
                     )}
                 >
                     <div className="relative w-full h-full flex items-center justify-center">
-                        <span className="text-4xl filter drop-shadow-[0_0_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300 select-none">
+                        <span className="text-2xl sm:text-4xl filter drop-shadow-[0_0_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300 select-none">
                             🎃
                         </span>
 
@@ -423,9 +423,9 @@ export function PumpkinAssistant() {
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-zinc-950 flex items-center justify-center z-10"
+                        className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-emerald-500 rounded-full border-2 border-zinc-950 flex items-center justify-center z-10"
                     >
-                        <span className="text-[10px] font-black text-black">!</span>
+                        <span className="text-[8px] sm:text-[10px] font-black text-black">!</span>
                     </motion.div>
                 )}
             </motion.div>

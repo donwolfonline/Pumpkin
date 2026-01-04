@@ -51,13 +51,13 @@ export function CommandPalette() {
         <>
             <div
                 onClick={() => setOpen(true)}
-                className="relative w-full max-w-sm cursor-pointer"
+                className="relative w-full sm:max-w-sm cursor-pointer group"
             >
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <div className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 pl-9 text-sm text-muted-foreground shadow-sm items-center">
-                    Search...
-                    <span className="absolute right-2 flex items-center gap-1 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        <span className="text-xs">⌘</span>K
+                <div className="flex h-9 w-9 sm:w-full items-center justify-center sm:justify-start rounded-xl border border-white/5 bg-white/5 sm:bg-background px-0 sm:px-3 sm:py-1 sm:pl-9 text-sm text-muted-foreground shadow-sm transition-all hover:bg-white/10 sm:hover:border-primary/20">
+                    <Search className="h-4 w-4 text-zinc-500 sm:absolute sm:left-2.5 sm:top-2.5" />
+                    <span className="hidden sm:inline">Search...</span>
+                    <span className="hidden sm:flex absolute right-2 items-center gap-1 text-[10px] text-zinc-500 bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+                        <span className="text-[10px]">⌘</span>K
                     </span>
                 </div>
             </div>

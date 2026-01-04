@@ -339,12 +339,12 @@ export function UserAssistant() {
                 <button
                     onClick={handleToggle}
                     className={cn(
-                        "w-16 h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all duration-500 relative overflow-hidden group border-2",
+                        "w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all duration-500 relative overflow-hidden group border-2",
                         isOpen ? "bg-zinc-950 border-white/20" : "bg-[#f97316] border-white/10"
                     )}
                 >
                     <div className="relative w-full h-full flex items-center justify-center">
-                        <span className="text-4xl filter drop-shadow-[0_0_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300 select-none">
+                        <span className="text-2xl sm:text-4xl filter drop-shadow-[0_0_8px_rgba(0,0,0,0.5)] group-hover:scale-110 transition-transform duration-300 select-none">
                             🎃
                         </span>
 

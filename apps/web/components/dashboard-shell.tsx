@@ -22,7 +22,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
                 <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-emerald-500/5 rounded-full blur-[120px] pointer-events-none" />
 
                 <Header />
-                <div className="flex-1 space-y-4 p-6 md:p-10 pt-8 relative z-10">
+                <div className="flex-1 space-y-4 p-4 md:p-10 pt-6 md:pt-8 relative z-10">
                     {children}
                 </div>
             </main>
