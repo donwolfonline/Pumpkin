@@ -76,7 +76,9 @@ export function Footer() {
                             </span>
                             <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">All Systems Normal</span>
                         </Link>
-                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Powered by Pumpkin Power</span>
+                        <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">
+                            v{require('../../../package.json').version}
+                        </span>
                     </div>
                 </div>
             </div>
