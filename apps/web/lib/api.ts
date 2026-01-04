@@ -34,6 +34,71 @@ export interface PortalStats {
     unsignedDocuments: number;
 }
 
+export interface Account {
+    id: string;
+    code: string;
+    name: string;
+    type: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
+    balance: number;
+    parentId?: string | null;
+    children?: Account[];
+}
+
+export interface Expense {
+    id: string;
+    date: string;
+    description: string;
+    amount: number;
+    category: string;
+    vendor: string;
+    accountId: string;
+    reference?: string;
+    paymentMethod?: string;
+    currency?: string;
+    receiptUrl?: string;
+}
+
+export interface JournalLine {
+    id: string;
+    accountId: string;
+    account: Account;
+    type: 'DEBIT' | 'CREDIT';
+    amount: number;
+}
+
+export interface JournalEntry {
+    id: string;
+    date: string;
+    description: string;
+    reference?: string;
+    lines: JournalLine[];
+}
+
+export interface CommunityComment {
+    id: string;
+    postId: string;
+    authorId: string;
+    author: User;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CommunityPost {
+    id: string;
+    authorId: string;
+    author: User;
+    content: string;
+    type: 'POST' | 'ANNOUNCEMENT';
+    imageUrl?: string;
+    isPublic: boolean;
+    likesCount: number;
+    likedBy: string[];
+    comments: CommunityComment[];
+    createdAt: string;
+    updatedAt: string;
+}
+
 class ApiClient {
     private baseURL: string;
     private accessToken: string | null = null;
@@ -437,33 +502,91 @@ class ApiClient {
     }
 
     async getHealth() {
-        return this.request<any>('/health');
+        return this.request<{ status: string; uptime: number; timestamp: string }>('/health');
     }
 
     // Finance
     async getFinanceAccounts() {
-        return this.request<any[]>('/finance/accounts');
+        return this.request<Account[]>('/finance/accounts');
+    }
+
+    async getFinanceAccountsAll() {
+        return this.request<Account[]>('/finance/accounts/all');
     }
 
     async getFinanceLedger() {
-        return this.request<any[]>('/finance/ledger');
+        return this.request<JournalEntry[]>('/finance/ledger');
     }
 
     async getFinanceExpenses() {
-        return this.request<any[]>('/finance/expenses');
+        return this.request<Expense[]>('/finance/expenses');
     }
 
-    async createFinanceExpense(data: any) {
-        return this.request<any>('/finance/expenses', {
+    async createFinanceAccount(data: Partial<Account>) {
+        return this.request<Account>('/finance/accounts', {
             method: 'POST',
             body: JSON.stringify(data),
         });
     }
 
-    async createJournalEntry(data: any) {
-        return this.request<any>('/finance/journal', {
+    async updateFinanceAccount(id: string, data: Partial<Account>) {
+        return this.request<Account>(`/finance/accounts/${id}`, {
+            method: 'PATCH',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async createFinanceExpense(data: Partial<Expense>) {
+        return this.request<Expense>('/finance/expenses', {
             method: 'POST',
             body: JSON.stringify(data),
+        });
+    }
+
+    async createJournalEntry(data: {
+        date: string;
+        description: string;
+        reference?: string;
+        lines: { accountId: string; type: 'DEBIT' | 'CREDIT'; amount: number }[];
+    }) {
+        return this.request<JournalEntry>('/finance/journal', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    // Community
+    async getCommunityPosts() {
+        return this.request<CommunityPost[]>('/community/posts');
+    }
+
+    async getCommunityPost(id: string) {
+        return this.request<CommunityPost>(`/community/posts/${id}`);
+    }
+
+    async createCommunityPost(data: { content: string; type?: string; imageUrl?: string; isPublic?: boolean }): Promise<CommunityPost> {
+        return this.request<CommunityPost>('/community/posts', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        });
+    }
+
+    async addCommunityComment(postId: string, content: string) {
+        return this.request<CommunityComment>(`/community/posts/${postId}/comments`, {
+            method: 'POST',
+            body: JSON.stringify({ content }),
+        });
+    }
+
+    async toggleCommunityPostLike(id: string) {
+        return this.request<CommunityPost>(`/community/posts/${id}/like`, {
+            method: 'POST',
+        });
+    }
+
+    async deleteCommunityPost(id: string) {
+        return this.request<{ success: boolean }>(`/community/posts/${id}`, {
+            method: 'DELETE',
         });
     }
 }

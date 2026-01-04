@@ -14,6 +14,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { HealthModule } from './modules/health/health.module';
 import { ClientPortalModule } from './modules/client-portal/client-portal.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { CommunityModule } from './modules/community/community.module';
 import { DummyDataSeeder } from './common/seed/dummy-data.seeder';
 import { User } from './modules/auth/entities/user.entity';
 import { Organization } from './modules/tenant/entities/organization.entity';
@@ -23,6 +24,8 @@ import { BookingType } from './modules/scheduling/entities/booking-type.entity';
 import { Automation } from './modules/automation/entities/automation.entity';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
+import { CommunityPost } from './modules/community/entities/community-post.entity';
+import { CommunityComment } from './modules/community/entities/community-comment.entity';
 
 @Module({
   imports: [
@@ -49,7 +52,9 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
           };
         }
 
-        const databaseUrl = configService.get('DATABASE_URL') || configService.get('POSTGRES_URL');
+        const databaseUrl =
+          configService.get('DATABASE_URL') ||
+          configService.get('POSTGRES_URL');
 
         if (databaseUrl) {
           return {
@@ -59,8 +64,8 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
             synchronize: true, // Auto-schema sync for easy deployment
             logging: false, // Reduce noise in prod
             ssl: {
-              rejectUnauthorized: false
-            }
+              rejectUnauthorized: false,
+            },
           };
         }
 
@@ -74,7 +79,10 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           synchronize: configService.get('NODE_ENV') === 'development',
           logging: configService.get('NODE_ENV') === 'development',
-          ssl: configService.get('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+          ssl:
+            configService.get('NODE_ENV') === 'production'
+              ? { rejectUnauthorized: false }
+              : false,
         };
       },
     }),
@@ -96,9 +104,12 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
       Contact,
       BookingType,
       Automation,
+      CommunityPost,
+      CommunityComment,
     ]),
     ClientPortalModule,
     FinanceModule,
+    CommunityModule,
   ],
   controllers: [AppController],
   providers: [

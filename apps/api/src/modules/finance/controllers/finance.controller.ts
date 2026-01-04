@@ -3,6 +3,8 @@ import {
     Get,
     Post,
     Body,
+    Param,
+    Patch,
     UseInterceptors,
     UseGuards,
     ClassSerializerInterceptor,
@@ -29,10 +31,38 @@ export class FinanceController {
     constructor(private readonly financeService: FinanceService) { }
 
     @Get('accounts')
-    @ApiOperation({ summary: 'Get Chart of Accounts' })
-    @ApiResponse({ status: 200, description: 'Returns the list of accounts', type: [ChartOfAccount] })
+    @ApiOperation({ summary: 'Get Chart of Accounts (Hierarchical)' })
+    @ApiResponse({ status: 200, description: 'Returns the tree of accounts', type: [ChartOfAccount] })
     async getAccounts(@CurrentUser() { member }: AuthenticatedUser) {
         return await this.financeService.getChartOfAccounts(member.organizationId);
+    }
+
+    @Get('accounts/all')
+    @ApiOperation({ summary: 'Get all accounts (Flat)' })
+    @ApiResponse({ status: 200, description: 'Returns flat list of all accounts', type: [ChartOfAccount] })
+    async getAccountsFlat(@CurrentUser() { member }: AuthenticatedUser) {
+        return await this.financeService.getAccountsFlat(member.organizationId);
+    }
+
+    @Post('accounts')
+    @ApiOperation({ summary: 'Create a new account' })
+    @ApiResponse({ status: 201, description: 'Account created successfully', type: ChartOfAccount })
+    async createAccount(
+        @CurrentUser() { member }: AuthenticatedUser,
+        @Body() body: any,
+    ) {
+        return this.financeService.createAccount(member.organizationId, body);
+    }
+
+    @Patch('accounts/:id')
+    @ApiOperation({ summary: 'Update an account' })
+    @ApiResponse({ status: 200, description: 'Account updated successfully', type: ChartOfAccount })
+    async updateAccount(
+        @CurrentUser() { member }: AuthenticatedUser,
+        @Param('id') id: string,
+        @Body() body: any,
+    ) {
+        return this.financeService.updateAccount(member.organizationId, id, body);
     }
 
     @Get('ledger')

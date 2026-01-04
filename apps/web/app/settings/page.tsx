@@ -55,6 +55,7 @@ export default function SettingsPage() {
     const [notifications, setNotifications] = useState<NotificationSettings>({ emailAlerts: true, pushNotifications: true, marketingEmails: false });
     const [security, setSecurity] = useState<SecuritySettings>({ twoFactorEnabled: false });
     const [passwordData, setPasswordData] = useState({ current: '', new: '', confirm: '' });
+    const [newMemberEmail, setNewMemberEmail] = useState('');
 
     // --- Hydration Effect ---
     useEffect(() => {

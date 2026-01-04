@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { DashboardShell } from '@/components/dashboard-shell'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
     Plus,
@@ -16,28 +16,45 @@ import {
     Tag,
     Trash2
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, Account, Expense } from '@/lib/api'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { ExpenseDialog } from '@/components/features/finance/expense-dialog'
 
 export default function ExpensesPage() {
-    const [expenses, setExpenses] = useState<any[]>([])
+    const [expenses, setExpenses] = useState<Expense[]>([])
+    const [accounts, setAccounts] = useState<Account[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+    const loadData = async () => {
+        setIsLoading(true)
+        try {
+            const [expensesData, accountsData] = await Promise.all([
+                api.getFinanceExpenses(),
+                api.getFinanceAccountsAll()
+            ])
+            setExpenses(expensesData)
+            setAccounts(accountsData)
+        } catch (error) {
+            console.error('Failed to load expense data:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const loadExpenses = async () => {
-            try {
-                const data = await api.getFinanceExpenses()
-                setExpenses(data)
-            } catch (error) {
-                console.error('Failed to load expenses:', error)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        loadExpenses()
+        loadData()
     }, [])
+
+    const handleLogExpense = async (data: Partial<Expense>) => {
+        try {
+            await api.createFinanceExpense(data)
+            loadData()
+        } catch (error) {
+            console.error('Failed to log expense:', error)
+        }
+    }
 
     return (
         <DashboardShell>
@@ -58,7 +75,10 @@ export default function ExpensesPage() {
                             Track and categorize your business spending and vendor payments.
                         </p>
                     </div>
-                    <Button className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2 group backdrop-blur-md">
+                    <Button
+                        className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2 group backdrop-blur-md"
+                        onClick={() => setIsDialogOpen(true)}
+                    >
                         <Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />
                         Log Expense
                     </Button>
@@ -143,6 +163,13 @@ export default function ExpensesPage() {
                     )}
                 </div>
             </div>
+
+            <ExpenseDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                accounts={accounts}
+                onSubmit={handleLogExpense}
+            />
         </DashboardShell>
     )
 }

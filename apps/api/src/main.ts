@@ -51,6 +51,8 @@ async function bootstrap() {
   console.log(`🎃 Pumpkin API running on http://localhost:${port}`);
   console.log(`📚 API Docs available at http://localhost:${port}/api/docs`);
 }
+
+// Trigger reload for new community module
 bootstrap().catch((err) => {
   console.error('💥 Error starting application:', err);
   process.exit(1);

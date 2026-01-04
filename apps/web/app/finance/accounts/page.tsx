@@ -10,11 +10,13 @@ import {
     TreePine,
     Plus,
     Loader2,
-    ArrowLeft
+    ArrowLeft,
+    Edit2
 } from 'lucide-react'
 import { api } from '@/lib/api'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { AccountDialog } from '@/components/features/finance/account-dialog'
 
 interface Account {
     id: string;
@@ -22,10 +24,17 @@ interface Account {
     name: string;
     type: string;
     balance: number;
+    parentId?: string | null;
     children?: Account[];
 }
 
-function AccountRow({ account, depth = 0 }: { account: Account; depth?: number }) {
+interface AccountRowProps {
+    account: Account;
+    depth?: number;
+    onEdit: (account: Account) => void;
+}
+
+function AccountRow({ account, depth = 0, onEdit }: AccountRowProps) {
     const [isExpanded, setIsExpanded] = useState(true)
     const hasChildren = account.children && account.children.length > 0
 
@@ -33,7 +42,7 @@ function AccountRow({ account, depth = 0 }: { account: Account; depth?: number }
         <>
             <div
                 className={cn(
-                    "flex items-center justify-between p-4 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5",
+                    "flex items-center justify-between p-4 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5 group",
                     depth > 0 && "bg-white/[0.02]"
                 )}
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -57,12 +66,23 @@ function AccountRow({ account, depth = 0 }: { account: Account; depth?: number }
                     )}>
                         ${Number(account.balance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onEdit(account);
+                        }}
+                    >
+                        <Edit2 className="h-3 w-3 text-zinc-500 hover:text-white" />
+                    </Button>
                 </div>
             </div>
             {hasChildren && isExpanded && (
                 <div>
                     {account.children!.map(child => (
-                        <AccountRow key={child.id} account={child} depth={depth + 1} />
+                        <AccountRow key={child.id} account={child} depth={depth + 1} onEdit={onEdit} />
                     ))}
                 </div>
             )}
@@ -72,21 +92,53 @@ function AccountRow({ account, depth = 0 }: { account: Account; depth?: number }
 
 export default function ChartOfAccountsPage() {
     const [accounts, setAccounts] = useState<Account[]>([])
+    const [allAccounts, setAllAccounts] = useState<Account[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [selectedAccount, setSelectedAccount] = useState<Account | null>(null)
+
+    const loadAccounts = async () => {
+        setIsLoading(true)
+        try {
+            const [treeData, flatData] = await Promise.all([
+                api.getFinanceAccounts(),
+                api.getFinanceAccountsAll()
+            ])
+            setAccounts(treeData)
+            setAllAccounts(flatData)
+        } catch (error) {
+            console.error('Failed to load accounts:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const loadAccounts = async () => {
-            try {
-                const data = await api.getFinanceAccounts()
-                setAccounts(data)
-            } catch (error) {
-                console.error('Failed to load accounts:', error)
-            } finally {
-                setIsLoading(false)
-            }
-        }
         loadAccounts()
     }, [])
+
+    const handleAddAccount = () => {
+        setSelectedAccount(null)
+        setIsDialogOpen(true)
+    }
+
+    const handleEditAccount = (account: Account) => {
+        setSelectedAccount(account)
+        setIsDialogOpen(true)
+    }
+
+    const handleSubmit = async (data: any) => {
+        try {
+            if (selectedAccount) {
+                await api.updateFinanceAccount(selectedAccount.id, data)
+            } else {
+                await api.createFinanceAccount(data)
+            }
+            loadAccounts()
+        } catch (error) {
+            console.error('Failed to save account:', error)
+        }
+    }
 
     return (
         <DashboardShell>
@@ -107,7 +159,10 @@ export default function ChartOfAccountsPage() {
                             Manage your business financial structure and account categories.
                         </p>
                     </div>
-                    <Button className="rounded-xl uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2">
+                    <Button
+                        className="rounded-xl uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2"
+                        onClick={handleAddAccount}
+                    >
                         <Plus className="h-4 w-4" />
                         Add Account
                     </Button>
@@ -120,6 +175,7 @@ export default function ChartOfAccountsPage() {
                             <div className="flex items-center gap-8 pr-4">
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 w-24 text-center">Type</span>
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 w-32 text-right">Balance</span>
+                                <div className="w-8" />
                             </div>
                         </div>
                     </CardHeader>
@@ -131,7 +187,7 @@ export default function ChartOfAccountsPage() {
                         ) : (
                             <div className="flex flex-col">
                                 {accounts.map(account => (
-                                    <AccountRow key={account.id} account={account} />
+                                    <AccountRow key={account.id} account={account} onEdit={handleEditAccount} />
                                 ))}
                                 {accounts.length === 0 && (
                                     <div className="p-12 text-center text-zinc-500 italic text-sm">
@@ -143,6 +199,14 @@ export default function ChartOfAccountsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <AccountDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                account={selectedAccount}
+                accounts={allAccounts}
+                onSubmit={handleSubmit}
+            />
         </DashboardShell>
     )
 }

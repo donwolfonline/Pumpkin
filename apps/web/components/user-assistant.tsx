@@ -26,6 +26,14 @@ const USER_KNOWLEDGE_BASE = [
         answers: ["You can manage billing in the **Payments** tab. Click **New Invoice** to create one. Once sent, you can track when clients view and pay it. 💰"]
     },
     {
+        keywords: ["finance", "revenue", "profit", "ledger", "expense", "accounts"],
+        answers: [
+            "Track your business health in the **Finance** section. You can view net revenue, monthly growth, and log business expenses to calculate true profit. 📊",
+            "Manage your **Chart of Accounts** to organize assets and liabilities. You can even create nested accounts! 📁",
+            "The **General Ledger** provides an audit trail of every transaction. Use manual **Journal Entries** for adjustments—just make sure they balance! ⚖️"
+        ]
+    },
+    {
         keywords: ["client", "contact", "crm", "customer"],
         answers: ["Your **CRM** holds all your contacts. You can import them or add them manually. Clicking a contact shows their full history, including emails and invoices! 👥"]
     },
@@ -46,6 +54,13 @@ const USER_KNOWLEDGE_BASE = [
         answers: ["I'm here to help! Ask me how to create an invoice, manage clients, or set up your website. If you're really stuck, you can email support@pumpkin.app! 🎃"]
     },
     {
+        keywords: ["community", "hub", "share", "post", "comment", "connect", "feed"],
+        answers: [
+            "Welcome to the **Community Hub**! It's the best place to connect with other service pros, share your wins, and get the latest updates from the Pumpkin team. 🏛️",
+            "You can share posts, ask for advice, and comment on other people's updates in the Hub. Look for the **Community** tab in your sidebar! 🎃"
+        ]
+    },
+    {
         keywords: ["joke", "funny"],
         answers: [
             "Why did the developer go broke? Because he used up all his cache! 💸",
@@ -56,9 +71,9 @@ const USER_KNOWLEDGE_BASE = [
 ];
 
 const DEFAULT_ANSWERS = [
-    "I'm your Dashboard Assistant! I can help you navigate projects, invoices, and your CRM. What do you need help with? 🎃",
-    "I'm not sure about that one, but I can show you how to create an invoice or a new project! Just ask. ✨",
-    "Hmm, I haven't learned that yet. Try asking about 'invoices', 'crm', or 'projects'! 🚀"
+    "I'm your AI Support! I can help you navigate projects, invoices, finance, and your CRM. What do you need help with? 🎃",
+    "I'm not sure about that one, but I can show you how to create an invoice, log an expense, or start a new project! Just ask. ✨",
+    "Hmm, I haven't learned that yet. Try asking about 'finance', 'invoices', 'crm', or 'projects'! 🚀"
 ];
 
 // Memoized Message Component
@@ -118,7 +133,7 @@ export function UserAssistant() {
     const [messages, setMessages] = useState<Message[]>(() => [
         {
             id: 'init',
-            text: "Hello! Need help managing your business today? I can help you with invoices, projects, or your CRM. 🎃",
+            text: "Hello! I'm your AI Support. I can help you with invoices, projects, finance, or your CRM. 🎃",
             sender: "assistant",
             timestamp: Date.now()
         }
@@ -270,7 +285,7 @@ export function UserAssistant() {
                                 {[
                                     { icon: <FileText className="w-3 h-3" />, label: "Create Invoice", q: "How do I create an invoice?" },
                                     { icon: <Users className="w-3 h-3" />, label: "CRM Help", q: "How do I add a client?" },
-                                    { icon: <CreditCard className="w-3 h-3" />, label: "Billing", q: "Where track payments?" },
+                                    { icon: <CreditCard className="w-3 h-3" />, label: "Finance Help", q: "How do I track my revenue and expenses?" },
                                     { icon: <HelpCircle className="w-3 h-3" />, label: "Support", q: "I need technical support" }
                                 ].map((tip) => (
                                     <button

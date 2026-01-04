@@ -38,6 +38,26 @@ export class FinanceService {
         return rootAccounts;
     }
 
+    async getAccountsFlat(organizationId: string) {
+        return await this.accountRepo.find({
+            where: { organizationId },
+            order: { code: 'ASC' },
+        });
+    }
+
+    async createAccount(organizationId: string, data: any) {
+        const account = this.accountRepo.create({
+            ...data,
+            organizationId,
+        });
+        return this.accountRepo.save(account);
+    }
+
+    async updateAccount(organizationId: string, id: string, data: any) {
+        await this.accountRepo.update({ id, organizationId }, data);
+        return this.accountRepo.findOne({ where: { id, organizationId } });
+    }
+
     private async seedDefaultAccounts(organizationId: string) {
         const defaults = [
             { code: '1000', name: 'Assets', type: AccountType.ASSET },

@@ -4,6 +4,7 @@ import { Problem } from "@/components/landing/problem";
 import { Solution } from "@/components/landing/solution";
 import { AIShowcase } from "@/components/landing/ai-showcase";
 import { ClientPortal } from "@/components/landing/client-portal";
+import { CommunityShowcase } from "@/components/landing/community-showcase";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { PumpkinLineup } from "@/components/landing/pumpkin-lineup";
 import { MobileShowcase } from "@/components/landing/mobile-showcase";
@@ -25,6 +26,7 @@ export default function Home() {
         <Solution />
         <AIShowcase />
         <ClientPortal />
+        <CommunityShowcase />
         <HowItWorks />
         <PumpkinLineup />
         <MobileShowcase />

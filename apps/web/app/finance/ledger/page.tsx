@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { DashboardShell } from '@/components/dashboard-shell'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
     History,
@@ -14,28 +14,45 @@ import {
     Calendar,
     FileText
 } from 'lucide-react'
-import { api } from '@/lib/api'
+import { api, Account, JournalEntry } from '@/lib/api'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
+import { JournalEntryDialog } from '@/components/features/finance/journal-entry-dialog'
 
 export default function GeneralLedgerPage() {
-    const [entries, setEntries] = useState<any[]>([])
+    const [entries, setEntries] = useState<JournalEntry[]>([])
+    const [accounts, setAccounts] = useState<Account[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+    const loadData = async () => {
+        setIsLoading(true)
+        try {
+            const [ledgerData, accountsData] = await Promise.all([
+                api.getFinanceLedger(),
+                api.getFinanceAccountsAll()
+            ])
+            setEntries(ledgerData)
+            setAccounts(accountsData)
+        } catch (error) {
+            console.error('Failed to load ledger data:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     useEffect(() => {
-        const loadLedger = async () => {
-            try {
-                const data = await api.getFinanceLedger()
-                setEntries(data)
-            } catch (error) {
-                console.error('Failed to load ledger:', error)
-            } finally {
-                setIsLoading(false)
-            }
-        }
-        loadLedger()
+        loadData()
     }, [])
+
+    const handlePostEntry = async (data: Parameters<typeof api.createJournalEntry>[0]) => {
+        try {
+            await api.createJournalEntry(data)
+            loadData()
+        } catch (error) {
+            console.error('Failed to post journal entry:', error)
+        }
+    }
 
     return (
         <DashboardShell>
@@ -56,7 +73,10 @@ export default function GeneralLedgerPage() {
                             Audit all financial transactions and journal entries.
                         </p>
                     </div>
-                    <Button className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2 group backdrop-blur-md">
+                    <Button
+                        className="rounded-xl border-white/10 bg-white/5 hover:bg-white/10 uppercase font-bold tracking-widest text-[10px] h-10 px-6 gap-2 group backdrop-blur-md"
+                        onClick={() => setIsDialogOpen(true)}
+                    >
                         <Plus className="h-4 w-4 group-hover:scale-110 transition-transform" />
                         New Journal Entry
                     </Button>
@@ -150,6 +170,13 @@ export default function GeneralLedgerPage() {
                     )}
                 </div>
             </div>
+
+            <JournalEntryDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                accounts={accounts}
+                onSubmit={handlePostEntry}
+            />
         </DashboardShell>
     )
 }

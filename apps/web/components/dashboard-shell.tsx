@@ -35,7 +35,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             {/* Mobile Side Drawer */}
             <MobileSidebar />
 
-            {/* Dashboard AI Assistant */}
+            {/* Dashboard AI Support */}
             <UserAssistant />
         </div>
     );

@@ -6,6 +6,15 @@ A production-ready, multi-tenant SaaS platform for startups and modern service b
 
 ## 🌟 New Features (v1.0.0)
 
+### 🏘 Community Hub (New!)
+
+Join a thriving ecosystem of service business owners.
+
+- **Media Uploads**: Share visual milestones with image support (1MB limit).
+- **Post Interactions**: Engage with colleagues via likes, comments, and post sharing.
+- **Guest Access**: A public-facing feed that allows unauthenticated visitors to explore the community.
+- **Visibility Controls**: Toggle between public and private posts for tailored privacy.
+
 ### 🤖 Dual AI System
 
 Pumpkin now features two distinct AI personalities tailored to the user's context:
