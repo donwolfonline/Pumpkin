@@ -3,7 +3,7 @@ import { VERSION } from "@/lib/version";
 
 export function Footer() {
     return (
-        <footer className="bg-[#051c1c] pt-24 pb-12 border-t border-white/5 relative overflow-hidden">
+        <footer className="py-12 relative overflow-hidden bg-transparent">
             {/* Small pumpkin peek-a-boo */}
             <div className="absolute -bottom-10 right-20 text-8xl opacity-10">🎃</div>
 
