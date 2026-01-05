@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { VERSION } from "@/lib/version";
+import { motion } from "framer-motion";
 
 export function Footer() {
     return (
@@ -45,14 +48,47 @@ export function Footer() {
                     </div>
 
                     <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="text-xs text-zinc-600 font-bold uppercase tracking-widest md:w-1/3">
+                        <div className="text-xs text-zinc-600 font-bold uppercase tracking-widest md:w-1/3 text-center md:text-left">
                             © {new Date().getFullYear()} Pumpkin Party Inc.
                         </div>
 
                         <div className="md:w-1/3 flex justify-center">
-                            <span className="text-[10px] text-zinc-700 font-bold uppercase tracking-[0.3em] bg-white/5 px-4 py-2 rounded-full border border-white/5">
-                                Platform v{VERSION}
-                            </span>
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                whileHover={{ scale: 1.05 }}
+                                className="relative group overflow-hidden bg-white/5 px-6 py-2 rounded-full border border-white/10 shadow-lg transition-all hover:bg-white/10 cursor-default"
+                            >
+                                {/* Shimmering Light Effect */}
+                                <motion.div
+                                    animate={{
+                                        x: ['-100%', '200%'],
+                                    }}
+                                    transition={{
+                                        duration: 3,
+                                        repeat: Infinity,
+                                        ease: "easeInOut",
+                                        repeatDelay: 1
+                                    }}
+                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 pointer-events-none"
+                                />
+
+                                <div className="relative z-10 flex items-center gap-2.5">
+                                    <motion.span
+                                        animate={{ rotate: [0, 10, -10, 0] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                        className="text-sm filter drop-shadow-[0_0_8px_rgba(249,115,22,0.4)]"
+                                    >
+                                        🎃
+                                    </motion.span>
+                                    <span className="text-[10px] text-zinc-200 font-bold uppercase tracking-[0.3em] drop-shadow-sm">
+                                        Pumpkin v{VERSION}
+                                    </span>
+                                </div>
+
+                                {/* Outer Glow on Hover */}
+                                <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[0_0_20px_rgba(249,115,22,0.25)] pointer-events-none" />
+                            </motion.div>
                         </div>
 
                         <div className="md:w-1/3 flex items-center justify-center md:justify-end gap-6 text-[10px] font-bold uppercase tracking-widest">
