@@ -14,7 +14,7 @@ async function bootstrap() {
   // Security
   app.use(helmet());
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL || 'http://localhost:4000',
     credentials: true,
   });
 
@@ -45,7 +45,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 4000;
+  const port = process.env.PORT || 4001;
   await app.listen(port);
 
   console.log(`🎃 Pumpkin API running on http://localhost:${port}`);
